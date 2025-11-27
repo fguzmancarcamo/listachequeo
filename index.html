@@ -1,5 +1,11 @@
-<!-- Chosen Palette: Cyberpunk Minimalist (Slate-950 background, Cyan-400 accents, Slate-800 surfaces) -->
-
+<!-- 
+  Sistema NEXUS Compliance System v3.0 - Casa Betel
+  Implementación de:
+  1. Gestión de Evidencia (Notas por ítem).
+  2. Trazabilidad (Fecha de última verificación/modificación).
+  3. Reporte PDF que incluye las Notas de Evidencia.
+  4. Mención explícita del Art. 14 (Roles) en el Calculador de Personal.
+-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -20,6 +26,8 @@
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #22d3ee; }
 
+        /* Estilos para el interruptor de cumplimiento (toggle) */
+        .toggle-container { position: relative; width: 48px; height: 24px; }
         .toggle-checkbox {
             position: absolute; display: block; width: 24px; height: 24px;
             border-radius: 50%; background-color: white; border: 4px solid;
@@ -32,6 +40,8 @@
             display: block; overflow: hidden; height: 24px; border-radius: 9999px;
             background-color: #475569; cursor: pointer; transition: background-color 0.3s;
         }
+        
+        /* Efecto de panel de vidrio para Cyberpunk minimalista */
         .glass-panel {
             background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px);
             border: 1px solid rgba(148, 163, 184, 0.1);
@@ -41,14 +51,14 @@
         }
         @media (min-width: 1024px) { .chart-container { height: 350px; } }
         
-        /* Animación para el login */
+        /* Animación para la transición de login */
         .fade-out { animation: fadeOut 0.5s forwards; }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-200 font-sans antialiased overflow-hidden selection:bg-cyan-500 selection:text-white">
 
-    <!-- LOGIN SCREEN -->
+    <!-- PANTALLA DE INICIO DE SESIÓN -->
     <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
         <div class="glass-panel p-8 rounded-2xl shadow-2xl w-full max-w-md border-t-4 border-cyan-400">
             <div class="text-center mb-8">
@@ -62,11 +72,11 @@
             <form id="login-form" class="space-y-6" onsubmit="event.preventDefault(); app.attemptLogin();">
                 <div>
                     <label class="block text-slate-400 text-xs font-bold mb-2 uppercase tracking-wider">Usuario</label>
-                    <input type="text" id="username" class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all" placeholder="Ingrese usuario...">
+                    <input type="text" id="username" class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all" placeholder="Ingrese usuario..." value="admin">
                 </div>
                 <div>
                     <label class="block text-slate-400 text-xs font-bold mb-2 uppercase tracking-wider">Contraseña</label>
-                    <input type="password" id="password" class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all" placeholder="Ingrese contraseña...">
+                    <input type="password" id="password" class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all" placeholder="Ingrese contraseña..." value="1234">
                 </div>
                 
                 <div id="login-error" class="hidden text-red-400 text-sm text-center font-semibold bg-red-900/20 p-2 rounded">
@@ -79,12 +89,12 @@
             </form>
             
             <div class="mt-6 text-center text-xs text-slate-600">
-                Authorized Personnel Only • v3.0
+                Personal Autorizado • v3.0 (admin/1234)
             </div>
         </div>
     </div>
 
-    <!-- MAIN APP CONTENT (Hidden by default) -->
+    <!-- CONTENIDO PRINCIPAL DE LA APLICACIÓN -->
     <div id="main-app" class="flex h-screen w-full hidden opacity-0 transition-opacity duration-500">
         <!-- Sidebar -->
         <aside class="w-20 lg:w-64 flex-shrink-0 border-r border-slate-800 bg-slate-900 flex flex-col transition-all duration-300">
@@ -93,24 +103,29 @@
                 <div class="text-cyan-400 font-bold text-2xl lg:hidden">N</div>
             </div>
             <nav class="flex-1 overflow-y-auto py-6 space-y-2">
+                <!-- Botón Dashboard -->
                 <button onclick="router.navigate('dashboard')" class="nav-item w-full flex items-center px-6 py-3 hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition-colors border-l-4 border-transparent hover:border-cyan-400 group">
                     <span class="text-xl group-hover:scale-110 transition-transform">&#8862;</span>
                     <span class="ml-4 font-medium hidden lg:block">Dashboard</span>
                 </button>
+                <!-- Botón Matriz -->
                 <button onclick="router.navigate('matrix')" class="nav-item w-full flex items-center px-6 py-3 hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition-colors border-l-4 border-transparent hover:border-cyan-400 group">
                     <span class="text-xl group-hover:scale-110 transition-transform">&#9745;</span>
                     <span class="ml-4 font-medium hidden lg:block">Matriz</span>
                 </button>
+                <!-- Botón Personal (Calculador) -->
                 <button onclick="router.navigate('calculator')" class="nav-item w-full flex items-center px-6 py-3 hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition-colors border-l-4 border-transparent hover:border-cyan-400 group">
                     <span class="text-xl group-hover:scale-110 transition-transform">&#9881;</span>
                     <span class="ml-4 font-medium hidden lg:block">Personal</span>
                 </button>
+                <!-- Botón Código -->
                 <button onclick="router.navigate('codex')" class="nav-item w-full flex items-center px-6 py-3 hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition-colors border-l-4 border-transparent hover:border-cyan-400 group">
                     <span class="text-xl group-hover:scale-110 transition-transform">&#128214;</span>
                     <span class="ml-4 font-medium hidden lg:block">Código</span>
                 </button>
             </nav>
             <div class="p-4 border-t border-slate-800 text-xs text-slate-500 text-center lg:text-left">
+                <!-- Botón Cerrar Sesión -->
                 <button onclick="app.logout()" class="w-full flex items-center justify-center lg:justify-start gap-2 text-red-400 hover:text-red-300 transition-colors mb-2 p-2 hover:bg-slate-800 rounded">
                     <span>&#9032;</span> <span class="hidden lg:inline">Cerrar Sesión</span>
                 </button>
@@ -119,7 +134,7 @@
             </div>
         </aside>
 
-        <!-- Main Content Area -->
+        <!-- Área de Contenido Principal -->
         <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-gradient-to-br from-slate-950 to-slate-900">
             <header class="h-20 border-b border-slate-800 flex items-center justify-between px-8 glass-panel z-10">
                 <div>
@@ -127,6 +142,7 @@
                     <p class="text-xs text-slate-400 font-mono mt-1">DTO. N° 4/2009 - Gestión de Evidencia</p>
                 </div>
                 <div class="flex items-center gap-4">
+                    <!-- Botón de Descarga de Reporte -->
                     <button onclick="app.downloadReport()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-xl shadow-[0_0_15px_rgba(8,145,178,0.5)] transition-all flex items-center gap-2 font-bold text-sm">
                         <span>&#11015;</span> Informe PDF
                     </button>
@@ -134,9 +150,10 @@
                 </div>
             </header>
 
+            <!-- Contenedor de Vistas -->
             <div id="view-container" class="flex-1 overflow-y-auto p-4 lg:p-8 space-y-8 relative"></div>
 
-            <!-- Generic Notification Modal -->
+            <!-- Modal de Notificación Genérica (Reemplaza a alert()) -->
             <div id="app-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
                 <div class="bg-slate-800 p-6 rounded-xl shadow-2xl max-w-sm w-full border-t-4 border-cyan-400">
                     <h3 id="modal-title" class="text-xl font-bold text-white mb-3">Notificación</h3>
@@ -145,7 +162,7 @@
                 </div>
             </div>
 
-            <!-- Notes/Evidence Modal -->
+            <!-- Modal de Notas/Evidencia (Gestión de Trazabilidad) -->
             <div id="notes-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center z-50">
                 <div class="bg-slate-800 p-6 rounded-xl shadow-2xl max-w-md w-full border border-slate-600">
                     <div class="flex justify-between items-center mb-4">
@@ -153,9 +170,9 @@
                         <button onclick="app.closeNotesModal()" class="text-slate-400 hover:text-white">&times;</button>
                     </div>
                     <p id="note-item-title" class="text-cyan-400 text-sm font-semibold mb-2"></p>
-                    <p class="text-xs text-slate-500 mb-4">Ingrese ubicación física, folio o comentarios para auditoría.</p>
+                    <p class="text-xs text-slate-500 mb-4">Ingrese ubicación física, folio o comentarios para auditoría (Máx 255 caracteres).</p>
                     
-                    <textarea id="note-input" class="w-full h-32 bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-300 text-sm focus:border-cyan-400 focus:outline-none mb-4" placeholder="Ej: Carpeta 3, Estante B. Vence el 12/2025..."></textarea>
+                    <textarea id="note-input" class="w-full h-32 bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-300 text-sm focus:border-cyan-400 focus:outline-none mb-4" placeholder="Ej: Carpeta 3, Estante B. Vence el 12/2025..." maxlength="255"></textarea>
                     
                     <div class="flex justify-end gap-3">
                         <button onclick="app.closeNotesModal()" class="px-4 py-2 text-slate-300 hover:text-white text-sm">Cancelar</button>
@@ -168,6 +185,7 @@
     </div>
 
     <script>
+        // Definición de los requerimientos basados en el DTO N° 4/2009
         const regulationData = {
             sections: [
                 {
@@ -202,124 +220,182 @@
                 {
                     id: 'stf', title: 'IV. Personal', icon: '&#128101;', description: 'Equipo técnico según Art 11, 14, 18.',
                     items: [
-                        {id: 's1', text: 'Director Técnico', ref: 'Art 11'}, {id: 's2', text: 'Equipo Base Mínimo', ref: 'Art 14'},
-                        {id: 's3', text: 'Ratio 2/15 (24/7)', ref: 'Art 18'}, {id: 's4', text: 'Nómina Personal', ref: 'Art 14'}
+                        {id: 's1', text: 'Director Técnico', ref: 'Art 11'}, 
+                        {id: 's2', text: 'Equipo Base Mínimo (Médico, Psicólogo, etc.)', ref: 'Art 14'},
+                        {id: 's3', text: 'Ratio 2/15 (24/7) - Personal de Apoyo', ref: 'Art 18'}, 
+                        {id: 's4', text: 'Nómina Personal y Contratos', ref: 'Art 14'}
                     ]
                 }
             ]
         };
 
-        const appState = { status: {}, notes: {}, timestamps: {}, currentView: 'dashboard', census: 15, staffCount: 2, currentEditId: null };
-        try { Object.assign(appState, JSON.parse(localStorage.getItem('casaBetelState') || '{}')); } catch(e){}
-        regulationData.sections.forEach(s => s.items.forEach(i => { if(appState.status[i.id] === undefined) appState.status[i.id] = false; }));
+        // Estado de la Aplicación (Almacenamiento Local)
+        const appState = { 
+            status: {},         // Booleano: Cumple / No Cumple
+            notes: {},          // String: Notas de Evidencia/Ubicación
+            timestamps: {},     // String: Fecha de la última modificación (Trazabilidad)
+            currentView: 'dashboard', 
+            census: 15,         // Censo de residentes
+            staffCount: 2,      // Conteo de personal
+            currentEditId: null // ID del ítem que se está editando en el modal
+        };
+        
+        // Cargar estado desde localStorage y asegurar que todos los ítems existen
+        try { Object.assign(appState, JSON.parse(localStorage.getItem('casaBetelState') || '{}')); } catch(e){ console.error("Error loading state:", e); }
+        regulationData.sections.forEach(s => s.items.forEach(i => { 
+            if(appState.status[i.id] === undefined) appState.status[i.id] = false; 
+            if(appState.notes[i.id] === undefined) appState.notes[i.id] = '';
+            if(appState.timestamps[i.id] === undefined) appState.timestamps[i.id] = null;
+        }));
 
         let radarChart = null, doughnutChart = null;
 
         const views = {
+            // --- DASHBOARD VIEW ---
             dashboard: () => {
                 const total = Object.keys(appState.status).length;
                 const completed = Object.values(appState.status).filter(v => v).length;
                 const percent = Math.round((completed / total) * 100) || 0;
                 return `
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div class="col-span-1 lg:col-span-3 glass-panel p-6 rounded-xl border-l-4 border-cyan-400">
+                        <!-- Panel de Estado General -->
+                        <div class="col-span-1 lg:col-span-3 glass-panel p-6 rounded-xl border-l-4 border-cyan-400 shadow-lg">
                             <h2 class="text-2xl font-bold text-white">Estado: <span class="${percent===100?'text-green-400':'text-cyan-400'}">${percent===100?'ÓPTIMO':'ACTIVO'}</span></h2>
                             <p class="text-slate-400 mt-1">Cumplimiento D.S. N° 4/2009: <strong class="text-white">${percent}%</strong></p>
                         </div>
-                        <div class="col-span-1 lg:col-span-2 glass-panel p-6 rounded-xl">
+                        
+                        <!-- Gráfico Radar (Cumplimiento por Sección) -->
+                        <div class="col-span-1 lg:col-span-2 glass-panel p-6 rounded-xl shadow-lg">
+                            <h3 class="text-lg font-semibold text-slate-300 mb-4">Progreso por Sección</h3>
                             <div class="chart-container"><canvas id="mainChart"></canvas></div>
                         </div>
+                        
+                        <!-- Gráfico Donut (Avance Global) -->
                         <div class="col-span-1 space-y-4">
-                            <div class="glass-panel p-6 rounded-xl flex flex-col items-center justify-center h-full">
+                            <div class="glass-panel p-6 rounded-xl flex flex-col items-center justify-center h-full shadow-lg">
+                                <h3 class="text-lg font-semibold text-slate-300 mb-4">Avance Global</h3>
                                 <div class="relative h-40 w-40"><canvas id="doughnutChart"></canvas>
                                     <div class="absolute inset-0 flex items-center justify-center font-bold text-2xl text-white pointer-events-none">${percent}%</div>
                                 </div>
-                                <div class="mt-4 text-center text-sm text-slate-400"><span class="text-green-400 font-bold">${completed}</span> Listos / <span class="text-red-400 font-bold">${total-completed}</span> Pendientes</div>
+                                <div class="mt-4 text-center text-sm text-slate-400">
+                                    <span class="text-green-400 font-bold">${completed}</span> Cumplidos / 
+                                    <span class="text-red-400 font-bold">${total-completed}</span> Pendientes
+                                </div>
                             </div>
                         </div>
                     </div>`;
             },
+
+            // --- MATRIX VIEW (CORE) ---
             matrix: () => `
                 <div class="space-y-6 pb-20">
-                    <h2 class="text-2xl font-bold text-white">Matriz de Cumplimiento & Evidencia</h2>
+                    <h2 class="text-2xl font-bold text-white">Matriz de Cumplimiento & Evidencia (Trazabilidad)</h2>
                     <div class="grid gap-6">
                         ${regulationData.sections.map(s => `
-                            <div class="glass-panel rounded-xl overflow-hidden">
-                                <div class="bg-slate-900/80 p-4 border-b border-slate-800 flex justify-between items-center">
+                            <div class="glass-panel rounded-xl overflow-hidden shadow-xl">
+                                <div class="bg-slate-900/80 p-4 border-b border-slate-700 flex justify-between items-center">
                                     <h3 class="font-bold text-slate-200 text-lg"><span class="text-cyan-400 mr-2">${s.icon}</span>${s.title}</h3>
-                                    <span class="text-xs bg-slate-950 px-2 py-1 rounded text-slate-500">${s.items.filter(i=>appState.status[i.id]).length}/${s.items.length}</span>
+                                    <span class="text-xs bg-cyan-900/30 text-cyan-400 px-3 py-1 rounded-full font-semibold">${s.items.filter(i=>appState.status[i.id]).length}/${s.items.length}</span>
                                 </div>
                                 <div class="p-4 grid md:grid-cols-2 gap-4">
-                                    ${s.items.map(i => `
-                                        <div class="flex flex-col p-3 bg-slate-950/50 rounded border border-slate-800 transition hover:border-slate-600">
-                                            <div class="flex items-center justify-between mb-2">
-                                                <div class="pr-2">
-                                                    <div class="text-sm text-slate-300 font-medium">${i.text}</div>
+                                    ${s.items.map(i => {
+                                        const timestamp = appState.timestamps[i.id];
+                                        const noteExists = appState.notes[i.id] && appState.notes[i.id].trim() !== '';
+                                        const formattedDate = timestamp ? new Date(timestamp).toLocaleDateString('es-CL') : 'N/A';
+                                        
+                                        return `
+                                        <div class="flex flex-col p-4 bg-slate-950/50 rounded-lg border ${noteExists ? 'border-cyan-700' : 'border-slate-800'} transition hover:border-slate-600">
+                                            <div class="flex items-start justify-between mb-3">
+                                                <div class="pr-4 flex-1">
+                                                    <div class="text-base text-slate-300 font-medium">${i.text}</div>
                                                     <div class="text-xs text-slate-600">${i.ref}</div>
                                                 </div>
-                                                <div class="relative w-12 h-6 flex-shrink-0">
+                                                <!-- Contenedor del Interruptor -->
+                                                <div class="relative toggle-container flex-shrink-0">
                                                     <input type="checkbox" id="${i.id}" class="toggle-checkbox" ${appState.status[i.id]?'checked':''} onchange="app.toggleItem('${i.id}')">
                                                     <label for="${i.id}" class="toggle-label ${appState.status[i.id]?'bg-cyan-600':''}"></label>
                                                 </div>
                                             </div>
+
+                                            <!-- SECCIÓN DE TRAZABILIDAD Y EVIDENCIA -->
                                             <div class="flex items-center justify-between mt-1 border-t border-slate-800 pt-2">
-                                                <div class="text-xs text-slate-500">
-                                                    ${appState.timestamps[i.id] ? 'Mod: ' + new Date(appState.timestamps[i.id]).toLocaleDateString() : 'Sin cambios'}
+                                                <div class="text-xs text-slate-500 font-mono">
+                                                    Última Mod: <span class="${timestamp ? 'text-slate-300' : 'text-slate-600'}">${formattedDate}</span>
                                                 </div>
-                                                <button onclick="app.openNotesModal('${i.id}', '${i.text}')" class="flex items-center gap-1 text-xs ${appState.notes[i.id] ? 'text-cyan-400 font-bold' : 'text-slate-500 hover:text-cyan-400'} transition-colors">
-                                                    <span>${appState.notes[i.id] ? '📝 Ver Nota' : '+ Evidencia'}</span>
+                                                <button onclick="app.openNotesModal('${i.id}', \`${i.text}\`)" 
+                                                        class="flex items-center gap-1 px-2 py-1 rounded hover:bg-slate-800/80 text-xs transition-colors ${noteExists ? 'text-cyan-400 font-bold' : 'text-slate-500 hover:text-cyan-400'}">
+                                                    <span>${noteExists ? '&#128221; Evidencia OK' : '&#9998; Agregar Nota'}</span>
                                                 </button>
                                             </div>
+                                            <!-- FIN SECCIÓN TRAZABILIDAD Y EVIDENCIA -->
                                         </div>
-                                    `).join('')}
+                                    `;}).join('')}
                                 </div>
                             </div>
                         `).join('')}
                     </div>
                 </div>`,
+
+            // --- CALCULATOR VIEW (PERSONAL) ---
             calculator: () => {
-                const req = Math.ceil((appState.census/15)*2);
+                const req = Math.ceil((appState.census/15)*2); // Art. 18 Ratio (2/15)
                 const ok = appState.staffCount >= req;
-                const dots = (n, c, l) => Array(parseInt(n)).fill(0).map((_,i)=>`<div class="w-${l?'8':'3'} h-${l?'8':'3'} rounded-full ${c} ${l?'border-2 border-white flex items-center justify-center text-xs font-bold text-white shadow-lg':''}" title="${l?'Pro':'Res'}">${l?'P':''}</div>`).join('');
+                // Función utilitaria para dibujar círculos (residentes/profesionales)
+                const dots = (n, c, isStaff) => Array(parseInt(n)).fill(0).map((_,i)=>`<div class="w-${isStaff?'8':'3'} h-${isStaff?'8':'3'} rounded-full ${c} ${isStaff?'border-2 border-white flex items-center justify-center text-xs font-bold text-white shadow-lg':''}" title="${isStaff?'Profesional':'Residente'}">${isStaff?'P':''}</div>`).join('');
                 return `
                     <div class="grid lg:grid-cols-2 gap-8 h-full">
-                        <div class="glass-panel p-8 rounded-xl space-y-8">
-                            <h2 class="text-2xl font-bold text-white">Calculador RR.HH.</h2>
-                            <p class="text-sm text-slate-400 italic">Validación basada en ratios del Art. 18. Nota: El Art. 14 exige además que el equipo incluya Médico y Psicólogo.</p>
+                        <!-- Controles de Censo y Personal -->
+                        <div class="glass-panel p-8 rounded-xl space-y-8 shadow-xl">
+                            <h2 class="text-2xl font-bold text-white border-b border-slate-700 pb-3">Calculador RR.HH. (Art. 18)</h2>
+                            <p class="text-sm text-slate-400 italic bg-slate-900/50 p-3 rounded-lg border-l-4 border-yellow-500">
+                                <span class="font-bold text-yellow-400">NOTA CRÍTICA (Art. 14):</span> Además del ratio numérico, se exige un Equipo Base Mínimo (Médico, Psicólogo, Técnico en Rehabilitación, etc.). Este calculador solo valida el ratio numérico 2/15.
+                            </p>
                             <div>
                                 <label class="block text-cyan-400 font-bold mb-2">Residentes: ${appState.census}</label>
                                 <input type="range" min="1" max="100" value="${appState.census}" class="w-full accent-cyan-400" oninput="app.updateCensus(this.value)">
                             </div>
                             <div>
-                                <label class="block text-purple-400 font-bold mb-2">Profesionales (Turno): ${appState.staffCount}</label>
-                                <div class="flex gap-4">
-                                    <button onclick="app.updateStaff(-1)" class="w-10 h-10 bg-slate-800 rounded hover:bg-red-900 text-white font-bold">-</button>
+                                <label class="block text-purple-400 font-bold mb-2">Personal de Apoyo (Turno): ${appState.staffCount}</label>
+                                <div class="flex gap-4 items-center">
+                                    <button onclick="app.updateStaff(-1)" class="w-10 h-10 bg-slate-800 rounded hover:bg-red-800/50 text-white font-bold transition">-</button>
                                     <span class="text-2xl font-mono text-white">${appState.staffCount}</span>
-                                    <button onclick="app.updateStaff(1)" class="w-10 h-10 bg-slate-800 rounded hover:bg-green-900 text-white font-bold">+</button>
+                                    <button onclick="app.updateStaff(1)" class="w-10 h-10 bg-slate-800 rounded hover:bg-green-800/50 text-white font-bold transition">+</button>
                                 </div>
                             </div>
                         </div>
-                        <div class="glass-panel p-8 rounded-xl flex flex-col relative overflow-hidden">
+
+                        <!-- Resultado Visual -->
+                        <div class="glass-panel p-8 rounded-xl flex flex-col relative overflow-hidden shadow-xl">
                             <div class="z-10 relative mb-4">
-                                <div class="text-4xl font-bold ${ok?'text-green-400':'text-red-500'}">${ok?'CUMPLIMIENTO':'DEFICITARIO'}</div>
-                                <p class="text-slate-400 mt-2">Requeridos: <strong class="text-white">${req}</strong> | Brecha: <strong class="${appState.staffCount-req>=0?'text-green-400':'text-red-400'}">${appState.staffCount-req}</strong></p>
+                                <div class="text-4xl font-bold ${ok?'text-green-400':'text-red-500'}">${ok?'CUMPLIMIENTO NUMÉRICO':'DÉFICIT DE PERSONAL'}</div>
+                                <p class="text-slate-400 mt-2">Requeridos (mínimo): <strong class="text-white">${req}</strong> | Brecha: <strong class="${appState.staffCount-req>=0?'text-green-400':'text-red-400'}">${appState.staffCount-req}</strong></p>
                             </div>
                             <div class="flex-1 bg-slate-900/50 rounded border border-slate-700 p-4 relative overflow-hidden">
-                                <div class="flex flex-wrap content-start gap-1 h-full">${dots(Math.min(appState.census,60), 'bg-slate-600', false)}</div>
-                                <div class="absolute bottom-4 right-4 flex flex-wrap-reverse gap-2 justify-end">${dots(Math.min(appState.staffCount,15), 'bg-purple-500', true)}</div>
+                                <!-- Representación de Residentes -->
+                                <p class="text-slate-500 text-sm mb-2">Residentes (Máx 60):</p>
+                                <div class="flex flex-wrap content-start gap-1 mb-4 h-1/2 overflow-y-auto">${dots(Math.min(appState.census,60), 'bg-slate-600', false)}</div>
+                                <!-- Representación de Personal -->
+                                <p class="text-slate-500 text-sm mb-2 border-t border-slate-800 pt-2">Personal (Ratio):</p>
+                                <div class="flex flex-wrap gap-2 justify-start h-1/2 overflow-y-auto">${dots(Math.min(appState.staffCount,15), 'bg-purple-500', true)}</div>
                             </div>
                         </div>
                     </div>`;
             },
+            
+            // --- CODEX VIEW (REFERENCIA RÁPIDA) ---
             codex: () => `
-                <div class="glass-panel p-8 rounded-xl h-full flex flex-col">
-                    <h2 class="text-2xl font-bold text-white mb-4">Código DTO N°4</h2>
-                    <input type="text" placeholder="Buscar..." class="bg-slate-900 border border-slate-700 text-white p-3 rounded mb-4 focus:border-cyan-400 outline-none" onkeyup="app.filterCodex(this.value)">
+                <div class="glass-panel p-8 rounded-xl h-full flex flex-col shadow-xl">
+                    <h2 class="text-2xl font-bold text-white mb-4">Código DTO N°4 (Referencia Rápida)</h2>
+                    <input type="text" placeholder="Buscar por Artículo o Requisito..." class="bg-slate-900 border border-slate-700 text-white p-3 rounded mb-4 focus:border-cyan-400 outline-none" onkeyup="app.filterCodex(this.value)">
                     <div class="overflow-y-auto space-y-2 pr-2 flex-1">
                         ${regulationData.sections.flatMap(s=>s.items.map(i=>`
-                            <div class="codex-item p-3 border border-slate-800 rounded hover:bg-slate-800/50">
-                                <div class="flex justify-between"><span class="font-bold text-cyan-400">${i.ref}</span><span class="text-xs px-2 rounded ${appState.status[i.id]?'bg-green-900 text-green-300':'bg-red-900 text-red-300'}">${appState.status[i.id]?'OK':'NO'}</span></div>
+                            <div class="codex-item p-3 border border-slate-800 rounded hover:bg-slate-800/50" data-section="${s.title}">
+                                <div class="flex justify-between">
+                                    <span class="font-bold text-cyan-400">${s.title.split('. ')[0]} | ${i.ref}</span>
+                                    <span class="text-xs px-2 py-1 rounded ${appState.status[i.id]?'bg-green-900 text-green-300':'bg-red-900 text-red-300'}">${appState.status[i.id]?'CUMPLE':'PENDIENTE'}</span>
+                                </div>
                                 <p class="text-slate-300 text-sm mt-1">${i.text}</p>
+                                ${appState.notes[i.id] ? `<p class="text-xs text-slate-500 italic mt-1">&#128221; Evidencia: ${appState.notes[i.id]}</p>` : ''}
                             </div>
                         `)).join('')}
                     </div>
@@ -327,7 +403,9 @@
         };
 
         const app = {
+            // Inicialización y Autenticación
             init: () => { 
+                // Usamos sessionStorage para simular una sesión activa
                 if(sessionStorage.getItem('nexus_session') === 'active') {
                     document.getElementById('login-screen').classList.add('hidden');
                     const main = document.getElementById('main-app');
@@ -337,7 +415,7 @@
             },
             attemptLogin: () => {
                 const u = document.getElementById('username').value, p = document.getElementById('password').value;
-                if (u === 'admin' && p === '1234') {
+                if (u === 'admin' && p === '1234') { // Credenciales hardcodeadas por simplicidad
                     document.getElementById('login-error').classList.add('hidden');
                     sessionStorage.setItem('nexus_session', 'active');
                     document.getElementById('login-screen').classList.add('fade-out');
@@ -354,21 +432,27 @@
                 }
             },
             logout: () => { sessionStorage.removeItem('nexus_session'); location.reload(); },
+
+            // Funcionalidad de la Matriz
             toggleItem: (id) => {
                 appState.status[id] = !appState.status[id];
-                appState.timestamps[id] = new Date().toISOString(); // Save timestamp
+                appState.timestamps[id] = new Date().toISOString(); // Trazabilidad: Registrar fecha de cambio
                 app.save();
+                
+                // Actualizar visualmente el botón (por si no se recarga la vista)
                 const chk = document.getElementById(id);
                 if(chk) {
                     const lbl = document.querySelector(`label[for="${id}"]`);
-                    chk.classList.toggle('right-0', appState.status[id]);
-                    chk.classList.toggle('left-0', !appState.status[id]);
                     chk.classList.toggle('border-cyan-400', appState.status[id]);
                     lbl.classList.toggle('bg-cyan-600', appState.status[id]);
                 }
-                if(appState.currentView === 'matrix') router.navigate('matrix'); // Refresh for timestamp update
+                
+                // Recargar para mostrar timestamp actualizado en la matriz
+                if(appState.currentView === 'matrix') router.navigate('matrix'); 
                 if(appState.currentView === 'dashboard') app.renderCharts();
             },
+            
+            // Funcionalidad de Notas de Evidencia (Gestión de Evidencia)
             openNotesModal: (id, text) => {
                 appState.currentEditId = id;
                 document.getElementById('note-item-title').innerText = text;
@@ -381,22 +465,41 @@
             },
             saveNote: () => {
                 if(appState.currentEditId) {
-                    const val = document.getElementById('note-input').value;
+                    const val = document.getElementById('note-input').value.trim();
                     appState.notes[appState.currentEditId] = val;
-                    appState.timestamps[appState.currentEditId] = new Date().toISOString();
+                    appState.timestamps[appState.currentEditId] = new Date().toISOString(); // Trazabilidad: La nota también actualiza el timestamp
                     app.save();
                     app.closeNotesModal();
-                    router.navigate('matrix'); // Refresh UI
+                    router.navigate('matrix'); // Recargar para mostrar el ícono de "Evidencia OK"
                 }
             },
+
+            // Funcionalidad General
             save: () => localStorage.setItem('casaBetelState', JSON.stringify(appState)),
-            updateCensus: (v) => { appState.census = parseInt(v); app.save(); document.getElementById('view-container').innerHTML = views.calculator(); },
-            updateStaff: (d) => { if(appState.staffCount+d >= 0) { appState.staffCount += d; app.save(); document.getElementById('view-container').innerHTML = views.calculator(); } },
-            filterCodex: (q) => { document.querySelectorAll('.codex-item').forEach(e => e.style.display = e.innerText.toLowerCase().includes(q.toLowerCase()) ? 'block' : 'none'); },
-            showModal: (t, m) => { document.getElementById('modal-title').innerText=t; document.getElementById('modal-message').innerText=m; document.getElementById('app-modal').classList.replace('hidden','flex'); },
+            showModal: (t, m) => { 
+                document.getElementById('modal-title').innerText=t; 
+                document.getElementById('modal-message').innerText=m; 
+                document.getElementById('app-modal').classList.replace('hidden','flex'); 
+            },
             closeModal: () => document.getElementById('app-modal').classList.replace('flex','hidden'),
+
+            // Funcionalidad Calculadora (Personal)
+            updateCensus: (v) => { appState.census = parseInt(v); app.save(); router.navigate('calculator'); },
+            updateStaff: (d) => { if(appState.staffCount+d >= 0) { appState.staffCount += d; app.save(); router.navigate('calculator'); } },
+            
+            // Funcionalidad Codex
+            filterCodex: (q) => { 
+                document.querySelectorAll('.codex-item').forEach(e => {
+                    const textContent = e.innerText.toLowerCase();
+                    e.style.display = textContent.includes(q.toLowerCase()) ? 'block' : 'none'; 
+                }); 
+            },
+
+            // Gráficos (Dashboard)
             renderCharts: () => {
                 if(appState.currentView !== 'dashboard') return;
+                
+                // 1. Gráfico Radar
                 const labels = regulationData.sections.map(s => s.title.split('. ')[1]);
                 const data = regulationData.sections.map(s => (s.items.filter(i=>appState.status[i.id]).length/s.items.length)*100);
                 const ctx1 = document.getElementById('mainChart');
@@ -404,10 +507,12 @@
                     if(radarChart) radarChart.destroy();
                     radarChart = new Chart(ctx1, {
                         type: 'radar',
-                        data: { labels, datasets: [{ label: '%', data, backgroundColor: 'rgba(34,211,238,0.2)', borderColor: '#22d3ee', pointBackgroundColor: '#fff' }] },
+                        data: { labels, datasets: [{ label: 'Cumplimiento (%)', data, backgroundColor: 'rgba(34,211,238,0.2)', borderColor: '#22d3ee', pointBackgroundColor: '#fff' }] },
                         options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 100, ticks: { display: false }, grid: { color: 'rgba(255,255,255,0.1)' } } }, plugins: { legend: { display: false } } }
                     });
                 }
+                
+                // 2. Gráfico Donut
                 const ctx2 = document.getElementById('doughnutChart');
                 if(ctx2) {
                     if(doughnutChart) doughnutChart.destroy();
@@ -419,62 +524,115 @@
                     });
                 }
             },
+            
+            // Generación de Reporte PDF con Evidencia
             downloadReport: () => {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
-                const date = new Date().toLocaleDateString();
+                const date = new Date().toLocaleDateString('es-CL');
                 const done = Object.values(appState.status).filter(x=>x).length, total = Object.keys(appState.status).length;
                 
-                // Header
+                // Configuración de Fuente y Colores
+                doc.setFont('Helvetica', 'Bold');
+                
+                // Header Cyberpunk
                 doc.setFillColor(15, 23, 42); // Slate 900
                 doc.rect(0, 0, 210, 30, 'F');
-                doc.setFontSize(22); doc.setTextColor(34, 211, 238);
-                doc.text("NEXUS SYSTEM", 105, 18, null, null, "center");
+                doc.setFontSize(24); doc.setTextColor(34, 211, 238); // Cyan 400
+                doc.text("NEXUS COMPLIANCE SYSTEM", 105, 18, null, null, "center");
                 
-                doc.setFontSize(10); doc.setTextColor(100);
-                doc.text(`Informe de Auditoría Interna - ${date}`, 105, 40, null, null, "center");
-                doc.setFontSize(12); doc.setTextColor(0);
-                doc.text(`Estado Global: ${Math.round((done/total)*100)}% Cumplimiento`, 20, 50);
+                // Metadata
+                doc.setFontSize(10); doc.setTextColor(150);
+                doc.setFont('Helvetica', 'Normal');
+                doc.text(`Informe de Auditoría Interna Detallada - DTO. N° 4/2009`, 105, 38, null, null, "center");
+                doc.text(`Fecha de Generación: ${date}`, 105, 43, null, null, "center");
+                
+                // Resumen
+                doc.setFontSize(14); doc.setTextColor(0);
+                doc.setFont('Helvetica', 'Bold');
+                doc.text(`Estado Global de Cumplimiento: ${Math.round((done/total)*100)}% (${done}/${total})`, 20, 55);
                 
                 let y = 65;
+                const marginX = 20;
+                
                 regulationData.sections.forEach(s => {
-                    if(y > 260) { doc.addPage(); y = 20; }
-                    doc.setFontSize(14); doc.setTextColor(34, 211, 238);
-                    doc.text(s.title, 20, y); 
-                    doc.setDrawColor(34, 211, 238); doc.line(20, y+2, 190, y+2);
+                    if(y > 270) { doc.addPage(); y = 20; }
+                    
+                    // Título de Sección
+                    doc.setFontSize(14); doc.setTextColor(34, 211, 238); // Cyan 400
+                    doc.setFont('Helvetica', 'Bold');
+                    doc.text(s.title, marginX, y); 
+                    doc.setDrawColor(34, 211, 238); doc.line(marginX, y+2, 190, y+2);
                     y += 10;
                     
-                    doc.setFontSize(10); 
                     s.items.forEach(i => {
-                        if(y > 275) { doc.addPage(); y = 20; }
-                        const st = appState.status[i.id] ? "CUMPLE" : "PENDIENTE";
-                        const note = appState.notes[i.id] ? `[Nota: ${appState.notes[i.id]}]` : "";
+                        if(y > 280) { doc.addPage(); y = 20; }
                         
-                        doc.setTextColor(appState.status[i.id] ? 0 : 200, appState.status[i.id] ? 100 : 0, 0); // Greenish vs Reddishish logic simplified
-                        doc.setTextColor(appState.status[i.id] ? 0 : 255, 0, 0);
-                        doc.text(`[${st}]`, 20, y);
+                        const isCompliant = appState.status[i.id];
+                        const statusText = isCompliant ? "CUMPLE" : "PENDIENTE";
+                        const note = appState.notes[i.id] || '';
+                        const timestamp = appState.timestamps[i.id] ? new Date(appState.timestamps[i.id]).toLocaleDateString('es-CL') : 'N/A';
+                        
+                        // Estado y Referencia
+                        doc.setFontSize(10); 
+                        doc.setFont('Helvetica', 'Bold');
+                        doc.setTextColor(isCompliant ? 0 : 255, isCompliant ? 150 : 0, 0); // Verde vs Rojo
+                        doc.text(`[${statusText}]`, marginX, y);
                         
                         doc.setTextColor(0);
-                        doc.text(`${i.text} (${i.ref})`, 45, y);
+                        doc.setFont('Helvetica', 'Normal');
+                        doc.text(`${i.text} (${i.ref})`, marginX + 30, y);
                         
+                        // Trazabilidad (Fecha)
+                        doc.setTextColor(100);
+                        doc.setFontSize(8);
+                        doc.text(`Mod: ${timestamp}`, 190, y, null, null, "right");
+                        
+                        y += 5;
+
+                        // Evidencia (Notas)
                         if(note) {
-                            y += 5;
-                            doc.setTextColor(100);
+                            doc.setTextColor(50);
                             doc.setFontSize(9);
-                            doc.text(note, 50, y);
-                            doc.setFontSize(10);
+                            const lines = doc.splitTextToSize(`Evidencia: ${note}`, 160);
+                            doc.text(lines, marginX + 35, y);
+                            y += (lines.length * 4) + 2; 
+                        } else {
+                            doc.setTextColor(150);
+                            doc.setFontSize(9);
+                            doc.text(`Evidencia: No Registrada`, marginX + 35, y);
+                            y += 4;
                         }
-                        y += 8;
+                        y += 4; // Espacio entre ítems
                     });
-                    y += 5;
+                    y += 5; // Espacio entre secciones
                 });
                 
-                doc.save(`Nexus_Reporte_Detallado_${date.replace(/\//g,'-')}.pdf`);
-                app.showModal("Informe Generado", "El PDF con evidencia y notas se ha descargado.");
+                doc.save(`Nexus_Reporte_Auditoria_${date.replace(/\//g,'-')}.pdf`);
+                app.showModal("Informe Generado", "El PDF detallado con la evidencia de trazabilidad se ha descargado correctamente.");
             }
         };
 
-        const router = { navigate: (v) => { appState.currentView = v; document.getElementById('view-container').innerHTML = views[v](); document.querySelectorAll('.nav-item').forEach(e => e.classList.toggle('text-cyan-400', e.getAttribute('onclick').includes(v))); if(v === 'dashboard') setTimeout(app.renderCharts, 50); } };
+        const router = { 
+            navigate: (v) => { 
+                appState.currentView = v; 
+                document.getElementById('view-container').innerHTML = views[v](); 
+                
+                // Actualizar estilo del sidebar
+                document.querySelectorAll('.nav-item').forEach(e => {
+                    e.classList.toggle('text-cyan-400', e.getAttribute('onclick').includes(v));
+                    e.classList.toggle('bg-slate-800', e.getAttribute('onclick').includes(v));
+                    e.classList.toggle('border-cyan-400', e.getAttribute('onclick').includes(v));
+                    e.classList.toggle('text-slate-400', !e.getAttribute('onclick').includes(v));
+                    e.classList.toggle('border-transparent', !e.getAttribute('onclick').includes(v));
+                });
+                
+                // Renderizar gráficos si estamos en el dashboard
+                if(v === 'dashboard') setTimeout(app.renderCharts, 100); 
+            } 
+        };
+        
+        // Iniciar la aplicación al cargar la ventana
         window.onload = app.init;
     </script>
 </body>
