@@ -1,0 +1,332 @@
+<!-- Chosen Palette: Cyberpunk Minimalist (Slate-950 background, Cyan-400 accents, Slate-800 surfaces) -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASA BETEL | Nexus Compliance System</title>
+    <!-- Incluir Tailwind CSS desde CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Incluir Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Incluir jsPDF para la generación de reportes en PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        html { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #22d3ee; }
+
+        .toggle-checkbox {
+            position: absolute; display: block; width: 24px; height: 24px;
+            border-radius: 50%; background-color: white; border: 4px solid;
+            appearance: none; cursor: pointer; transition: all 0.3s ease-in-out;
+            top: 50%; transform: translateY(-50%); left: 0;
+        }
+        .toggle-checkbox:checked { right: 0; left: auto; border-color: #22d3ee; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #22d3ee; }
+        .toggle-label {
+            display: block; overflow: hidden; height: 24px; border-radius: 9999px;
+            background-color: #475569; cursor: pointer; transition: background-color 0.3s;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        .chart-container {
+            position: relative; width: 100%; max-width: 100%; height: 300px; margin: 0 auto;
+        }
+        @media (min-width: 1024px) { .chart-container { height: 350px; } }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 font-sans antialiased overflow-hidden selection:bg-cyan-500 selection:text-white">
+
+    <div class="flex h-screen w-full">
+        <!-- Sidebar -->
+        <aside class="w-20 lg:w-64 flex-shrink-0 border-r border-slate-800 bg-slate-900 flex flex-col transition-all duration-300">
+            <div class="h-20 flex items-center justify-center border-b border-slate-800">
+                <div class="text-cyan-400 font-bold text-2xl tracking-widest hidden lg:block">NEXUS</div>
+                <div class="text-cyan-400 font-bold text-2xl lg:hidden">N</div>
+            </div>
+            <nav class="flex-1 overflow-y-auto py-6 space-y-2">
+                <button onclick="router.navigate('dashboard')" class="nav-item w-full flex items-center px-6 py-3 hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition-colors border-l-4 border-transparent hover:border-cyan-400 group">
+                    <span class="text-xl group-hover:scale-110 transition-transform">&#8862;</span>
+                    <span class="ml-4 font-medium hidden lg:block">Dashboard</span>
+                </button>
+                <button onclick="router.navigate('matrix')" class="nav-item w-full flex items-center px-6 py-3 hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition-colors border-l-4 border-transparent hover:border-cyan-400 group">
+                    <span class="text-xl group-hover:scale-110 transition-transform">&#9745;</span>
+                    <span class="ml-4 font-medium hidden lg:block">Matriz</span>
+                </button>
+                <button onclick="router.navigate('calculator')" class="nav-item w-full flex items-center px-6 py-3 hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition-colors border-l-4 border-transparent hover:border-cyan-400 group">
+                    <span class="text-xl group-hover:scale-110 transition-transform">&#9881;</span>
+                    <span class="ml-4 font-medium hidden lg:block">Personal</span>
+                </button>
+                <button onclick="router.navigate('codex')" class="nav-item w-full flex items-center px-6 py-3 hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition-colors border-l-4 border-transparent hover:border-cyan-400 group">
+                    <span class="text-xl group-hover:scale-110 transition-transform">&#128214;</span>
+                    <span class="ml-4 font-medium hidden lg:block">Código</span>
+                </button>
+            </nav>
+            <div class="p-4 border-t border-slate-800 text-xs text-slate-500 text-center lg:text-left">
+                <p class="hidden lg:block">Casa Betel System</p>
+                <p class="font-mono mt-1">v2.5 <span class="text-green-500">&#9679;</span> Online</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-gradient-to-br from-slate-950 to-slate-900">
+            <header class="h-20 border-b border-slate-800 flex items-center justify-between px-8 glass-panel z-10">
+                <div>
+                    <h1 class="text-xl lg:text-2xl font-bold text-white tracking-tight">CASA BETEL <span class="text-cyan-400 font-light">| Protocolo</span></h1>
+                    <p class="text-xs text-slate-400 font-mono mt-1">DTO. N° 4/2009 - Monitoreo Activo</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="app.downloadReport()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-xl shadow-[0_0_15px_rgba(8,145,178,0.5)] transition-all flex items-center gap-2 font-bold text-sm">
+                        <span>&#11015;</span> Exportar PDF
+                    </button>
+                    <div class="h-10 w-10 rounded-full bg-slate-800 border border-cyan-900 flex items-center justify-center text-cyan-400 font-bold">CB</div>
+                </div>
+            </header>
+
+            <div id="view-container" class="flex-1 overflow-y-auto p-4 lg:p-8 space-y-8 relative"></div>
+
+            <div id="app-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
+                <div class="bg-slate-800 p-6 rounded-xl shadow-2xl max-w-sm w-full border-t-4 border-cyan-400">
+                    <h3 id="modal-title" class="text-xl font-bold text-white mb-3">Notificación</h3>
+                    <p id="modal-message" class="text-slate-300 text-sm mb-4">Mensaje.</p>
+                    <button onclick="app.closeModal()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-2 rounded-lg">Aceptar</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const regulationData = {
+            sections: [
+                {
+                    id: 'docs', title: 'I. Documentación', icon: '&#128196;', description: 'Documentos obligatorios según Art 3.',
+                    items: [
+                        {id: 'd1', text: 'Programa Terapéutico', ref: 'Art 3.1'}, {id: 'd2', text: 'Plan Individual (PIT)', ref: 'Art 3.2'},
+                        {id: 'd3', text: 'Ficha Clínica', ref: 'Art 3.3'}, {id: 'd4', text: 'Informe de Alta', ref: 'Art 3.4'},
+                        {id: 'd5', text: 'Manual Org. Interna', ref: 'Art 3.5'}, {id: 'd6', text: 'Registro Estadístico', ref: 'Art 3.6'},
+                        {id: 'd7', text: 'Material Legal', ref: 'Art 3.7'}, {id: 'd8', text: 'Acceso Urgencia Médica', ref: 'Art 3.8'},
+                        {id: 'd9', text: 'Red Psiquiátrica', ref: 'Art 3.9'}, {id: 'd10', text: 'Plan Emergencias', ref: 'Art 3.10'}
+                    ]
+                },
+                {
+                    id: 'infra', title: 'II. Infraestructura', icon: '&#127963;', description: 'Condiciones físicas según Art 4 y 5.',
+                    items: [
+                        {id: 'i1', text: 'Estructura Segura', ref: 'Art 4'}, {id: 'i2', text: 'Estado Muros/Pisos', ref: 'Art 4'},
+                        {id: 'i3', text: 'Instalaciones Sanitarias', ref: 'Art 4'}, {id: 'i4', text: '1 Baño/10 Usuarios', ref: 'Art 5a'},
+                        {id: 'i5', text: 'Sala Entrevista (1/15)', ref: 'Art 5b'}, {id: 'i6', text: 'Sala Multiuso', ref: 'Art 5c'},
+                        {id: 'i7', text: 'Área Verde/Patio', ref: 'Art 5d'}, {id: 'i8', text: 'Basura Hermética', ref: 'Art 5e'},
+                        {id: 'i9', text: 'Botiquín Autorizado', ref: 'Art 5'}
+                    ]
+                },
+                {
+                    id: 'res', title: 'III. Residencial', icon: '&#128716;', description: 'Requisitos de pernoctación según Art 6.',
+                    items: [
+                        {id: 'r1', text: 'Comedor (50% cap)', ref: 'Art 6a'}, {id: 'r2', text: 'Dormitorios (Max 4)', ref: 'Art 6b'},
+                        {id: 'r3', text: 'Espacio Camas (1.5m)', ref: 'Art 6b'}, {id: 'r4', text: 'Clóset Individual', ref: 'Art 6c'},
+                        {id: 'r5', text: '1 Ducha/5 Res.', ref: 'Art 6d'}, {id: 'r6', text: 'Cocina Higiénica', ref: 'Art 6e'},
+                        {id: 'r7', text: 'Lavandería', ref: 'Art 6f'}
+                    ]
+                },
+                {
+                    id: 'stf', title: 'IV. Personal', icon: '&#128101;', description: 'Equipo técnico según Art 11, 14, 18.',
+                    items: [
+                        {id: 's1', text: 'Director Técnico', ref: 'Art 11'}, {id: 's2', text: 'Equipo Base Mínimo', ref: 'Art 14'},
+                        {id: 's3', text: 'Ratio 2/15 (24/7)', ref: 'Art 18'}, {id: 's4', text: 'Nómina Personal', ref: 'Art 14'}
+                    ]
+                }
+            ]
+        };
+
+        const appState = { status: {}, currentView: 'dashboard', census: 15, staffCount: 2 };
+        try { Object.assign(appState, JSON.parse(localStorage.getItem('casaBetelState') || '{}')); } catch(e){}
+        // Init default false if empty
+        regulationData.sections.forEach(s => s.items.forEach(i => { if(appState.status[i.id] === undefined) appState.status[i.id] = false; }));
+
+        let radarChart = null, doughnutChart = null;
+
+        const views = {
+            dashboard: () => {
+                const total = Object.keys(appState.status).length;
+                const completed = Object.values(appState.status).filter(v => v).length;
+                const percent = Math.round((completed / total) * 100) || 0;
+                return `
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="col-span-1 lg:col-span-3 glass-panel p-6 rounded-xl border-l-4 border-cyan-400">
+                            <h2 class="text-2xl font-bold text-white">Estado: <span class="${percent===100?'text-green-400':'text-cyan-400'}">${percent===100?'ÓPTIMO':'ACTIVO'}</span></h2>
+                            <p class="text-slate-400 mt-1">Cumplimiento D.S. N° 4/2009: <strong class="text-white">${percent}%</strong></p>
+                        </div>
+                        <div class="col-span-1 lg:col-span-2 glass-panel p-6 rounded-xl">
+                            <div class="chart-container"><canvas id="mainChart"></canvas></div>
+                        </div>
+                        <div class="col-span-1 space-y-4">
+                            <div class="glass-panel p-6 rounded-xl flex flex-col items-center justify-center h-full">
+                                <div class="relative h-40 w-40"><canvas id="doughnutChart"></canvas>
+                                    <div class="absolute inset-0 flex items-center justify-center font-bold text-2xl text-white pointer-events-none">${percent}%</div>
+                                </div>
+                                <div class="mt-4 text-center text-sm text-slate-400"><span class="text-green-400 font-bold">${completed}</span> Listos / <span class="text-red-400 font-bold">${total-completed}</span> Pendientes</div>
+                            </div>
+                        </div>
+                    </div>`;
+            },
+            matrix: () => `
+                <div class="space-y-6 pb-20">
+                    <h2 class="text-2xl font-bold text-white">Matriz de Cumplimiento</h2>
+                    <div class="grid gap-6">
+                        ${regulationData.sections.map(s => `
+                            <div class="glass-panel rounded-xl overflow-hidden">
+                                <div class="bg-slate-900/80 p-4 border-b border-slate-800 flex justify-between items-center">
+                                    <h3 class="font-bold text-slate-200 text-lg"><span class="text-cyan-400 mr-2">${s.icon}</span>${s.title}</h3>
+                                    <span class="text-xs bg-slate-950 px-2 py-1 rounded text-slate-500">${s.items.filter(i=>appState.status[i.id]).length}/${s.items.length}</span>
+                                </div>
+                                <div class="p-4 grid md:grid-cols-2 gap-4">
+                                    ${s.items.map(i => `
+                                        <div class="flex items-center justify-between p-3 bg-slate-950/50 rounded border border-slate-800">
+                                            <div class="pr-2"><div class="text-sm text-slate-300">${i.text}</div><div class="text-xs text-slate-600">${i.ref}</div></div>
+                                            <div class="relative w-12 h-6 flex-shrink-0"><input type="checkbox" id="${i.id}" class="toggle-checkbox" ${appState.status[i.id]?'checked':''} onchange="app.toggleItem('${i.id}')"><label for="${i.id}" class="toggle-label ${appState.status[i.id]?'bg-cyan-600':''}"></label></div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`,
+            calculator: () => {
+                const req = Math.ceil((appState.census/15)*2);
+                const ok = appState.staffCount >= req;
+                const dots = (n, c, l) => Array(parseInt(n)).fill(0).map((_,i)=>`<div class="w-${l?'8':'3'} h-${l?'8':'3'} rounded-full ${c} ${l?'border-2 border-white flex items-center justify-center text-xs font-bold text-white shadow-lg':''}" title="${l?'Pro':'Res'}">${l?'P':''}</div>`).join('');
+                return `
+                    <div class="grid lg:grid-cols-2 gap-8 h-full">
+                        <div class="glass-panel p-8 rounded-xl space-y-8">
+                            <h2 class="text-2xl font-bold text-white">Calculador RR.HH.</h2>
+                            <div>
+                                <label class="block text-cyan-400 font-bold mb-2">Residentes: ${appState.census}</label>
+                                <input type="range" min="1" max="100" value="${appState.census}" class="w-full" oninput="app.updateCensus(this.value)">
+                            </div>
+                            <div>
+                                <label class="block text-purple-400 font-bold mb-2">Profesionales (Turno): ${appState.staffCount}</label>
+                                <div class="flex gap-4">
+                                    <button onclick="app.updateStaff(-1)" class="w-10 h-10 bg-slate-800 rounded hover:bg-red-900 text-white font-bold">-</button>
+                                    <span class="text-2xl font-mono text-white">${appState.staffCount}</span>
+                                    <button onclick="app.updateStaff(1)" class="w-10 h-10 bg-slate-800 rounded hover:bg-green-900 text-white font-bold">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-panel p-8 rounded-xl flex flex-col relative overflow-hidden">
+                            <div class="z-10 relative mb-4">
+                                <div class="text-4xl font-bold ${ok?'text-green-400':'text-red-500'}">${ok?'CUMPLIMIENTO':'DEFICITARIO'}</div>
+                                <p class="text-slate-400 mt-2">Requeridos: <strong class="text-white">${req}</strong> | Brecha: <strong class="${appState.staffCount-req>=0?'text-green-400':'text-red-400'}">${appState.staffCount-req}</strong></p>
+                            </div>
+                            <div class="flex-1 bg-slate-900/50 rounded border border-slate-700 p-4 relative overflow-hidden">
+                                <div class="flex flex-wrap content-start gap-1 h-full">${dots(Math.min(appState.census,60), 'bg-slate-600', false)}</div>
+                                <div class="absolute bottom-4 right-4 flex flex-wrap-reverse gap-2 justify-end">${dots(Math.min(appState.staffCount,15), 'bg-purple-500', true)}</div>
+                            </div>
+                        </div>
+                    </div>`;
+            },
+            codex: () => `
+                <div class="glass-panel p-8 rounded-xl h-full flex flex-col">
+                    <h2 class="text-2xl font-bold text-white mb-4">Código DTO N°4</h2>
+                    <input type="text" placeholder="Buscar..." class="bg-slate-900 border border-slate-700 text-white p-3 rounded mb-4" onkeyup="app.filterCodex(this.value)">
+                    <div class="overflow-y-auto space-y-2 pr-2 flex-1">
+                        ${regulationData.sections.flatMap(s=>s.items.map(i=>`
+                            <div class="codex-item p-3 border border-slate-800 rounded hover:bg-slate-800/50">
+                                <div class="flex justify-between"><span class="font-bold text-cyan-400">${i.ref}</span><span class="text-xs px-2 rounded ${appState.status[i.id]?'bg-green-900 text-green-300':'bg-red-900 text-red-300'}">${appState.status[i.id]?'OK':'NO'}</span></div>
+                                <p class="text-slate-300 text-sm mt-1">${i.text}</p>
+                            </div>
+                        `)).join('')}
+                    </div>
+                </div>`
+        };
+
+        const app = {
+            init: () => { router.navigate('dashboard'); },
+            toggleItem: (id) => {
+                appState.status[id] = !appState.status[id];
+                app.save();
+                const chk = document.getElementById(id);
+                if(chk) {
+                    const lbl = document.querySelector(`label[for="${id}"]`);
+                    chk.classList.toggle('right-0', appState.status[id]);
+                    chk.classList.toggle('left-0', !appState.status[id]);
+                    chk.classList.toggle('border-cyan-400', appState.status[id]);
+                    lbl.classList.toggle('bg-cyan-600', appState.status[id]);
+                }
+                if(appState.currentView === 'dashboard') app.renderCharts();
+                if(appState.currentView === 'codex') router.navigate('codex');
+            },
+            save: () => localStorage.setItem('casaBetelState', JSON.stringify(appState)),
+            updateCensus: (v) => { appState.census = parseInt(v); app.save(); document.getElementById('view-container').innerHTML = views.calculator(); },
+            updateStaff: (d) => { if(appState.staffCount+d >= 0) { appState.staffCount += d; app.save(); document.getElementById('view-container').innerHTML = views.calculator(); } },
+            filterCodex: (q) => { document.querySelectorAll('.codex-item').forEach(e => e.style.display = e.innerText.toLowerCase().includes(q.toLowerCase()) ? 'block' : 'none'); },
+            showModal: (t, m) => { document.getElementById('modal-title').innerText=t; document.getElementById('modal-message').innerText=m; document.getElementById('app-modal').classList.replace('hidden','flex'); },
+            closeModal: () => document.getElementById('app-modal').classList.replace('flex','hidden'),
+            renderCharts: () => {
+                if(appState.currentView !== 'dashboard') return;
+                const labels = regulationData.sections.map(s => s.title.split('. ')[1]);
+                const data = regulationData.sections.map(s => (s.items.filter(i=>appState.status[i.id]).length/s.items.length)*100);
+                const ctx1 = document.getElementById('mainChart');
+                if(ctx1) {
+                    if(radarChart) radarChart.destroy();
+                    radarChart = new Chart(ctx1, {
+                        type: 'radar',
+                        data: { labels, datasets: [{ label: '%', data, backgroundColor: 'rgba(34,211,238,0.2)', borderColor: '#22d3ee', pointBackgroundColor: '#fff' }] },
+                        options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 100, ticks: { display: false }, grid: { color: 'rgba(255,255,255,0.1)' } } }, plugins: { legend: { display: false } } }
+                    });
+                }
+                const ctx2 = document.getElementById('doughnutChart');
+                if(ctx2) {
+                    if(doughnutChart) doughnutChart.destroy();
+                    const tot = Object.keys(appState.status).length, done = Object.values(appState.status).filter(x=>x).length;
+                    doughnutChart = new Chart(ctx2, {
+                        type: 'doughnut',
+                        data: { labels: ['Listo', 'Falta'], datasets: [{ data: [done, tot-done], backgroundColor: ['#22d3ee', '#1e293b'], borderWidth: 0 }] },
+                        options: { responsive: true, maintainAspectRatio: false, cutout: '85%', plugins: { legend: { display: false } } }
+                    });
+                }
+            },
+            downloadReport: () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const date = new Date().toLocaleDateString();
+                const done = Object.values(appState.status).filter(x=>x).length, total = Object.keys(appState.status).length;
+                
+                doc.setFontSize(20); doc.setTextColor(34, 211, 238);
+                doc.text("NEXUS COMPLIANCE SYSTEM", 105, 20, null, null, "center");
+                doc.setFontSize(10); doc.setTextColor(100);
+                doc.text(`Reporte Casa Betel - ${date}`, 105, 26, null, null, "center");
+
+                doc.setFontSize(14); doc.setTextColor(0);
+                doc.text(`Avance: ${Math.round((done/total)*100)}% (${done}/${total} Ítems)`, 20, 40);
+                
+                let y = 55;
+                regulationData.sections.forEach(s => {
+                    if(y > 270) { doc.addPage(); y = 20; }
+                    doc.setFontSize(12); doc.setTextColor(34, 211, 238);
+                    doc.text(s.title, 20, y); y += 8;
+                    doc.setFontSize(10); doc.setTextColor(50);
+                    s.items.forEach(i => {
+                        if(y > 280) { doc.addPage(); y = 20; }
+                        const st = appState.status[i.id] ? "[OK]" : "[  ]";
+                        doc.text(`${st} ${i.text} (${i.ref})`, 25, y);
+                        y += 6;
+                    });
+                    y += 6;
+                });
+                
+                doc.save(`Nexus_Report_${date.replace(/\//g,'-')}.pdf`);
+                app.showModal("PDF Generado", "El reporte se ha descargado a tu dispositivo.");
+            }
+        };
+
+        const router = { navigate: (v) => { appState.currentView = v; document.getElementById('view-container').innerHTML = views[v](); document.querySelectorAll('.nav-item').forEach(e => e.classList.toggle('text-cyan-400', e.getAttribute('onclick').includes(v))); if(v === 'dashboard') setTimeout(app.renderCharts, 50); } };
+        window.onload = app.init;
+    </script>
+</body>
+</html>
