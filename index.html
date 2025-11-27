@@ -40,11 +40,52 @@
             position: relative; width: 100%; max-width: 100%; height: 300px; margin: 0 auto;
         }
         @media (min-width: 1024px) { .chart-container { height: 350px; } }
+        
+        /* Animación para el login */
+        .fade-out { animation: fadeOut 0.5s forwards; }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-200 font-sans antialiased overflow-hidden selection:bg-cyan-500 selection:text-white">
 
-    <div class="flex h-screen w-full">
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
+        <div class="glass-panel p-8 rounded-2xl shadow-2xl w-full max-w-md border-t-4 border-cyan-400">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-800 border border-cyan-500 text-cyan-400 text-3xl font-bold mb-4 shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+                    N
+                </div>
+                <h1 class="text-2xl font-bold text-white tracking-widest">NEXUS SYSTEM</h1>
+                <p class="text-slate-400 text-sm mt-1">Casa Betel | Acceso Restringido</p>
+            </div>
+            
+            <form id="login-form" class="space-y-6" onsubmit="event.preventDefault(); app.attemptLogin();">
+                <div>
+                    <label class="block text-slate-400 text-xs font-bold mb-2 uppercase tracking-wider">Usuario</label>
+                    <input type="text" id="username" class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all" placeholder="Ingrese usuario...">
+                </div>
+                <div>
+                    <label class="block text-slate-400 text-xs font-bold mb-2 uppercase tracking-wider">Contraseña</label>
+                    <input type="password" id="password" class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all" placeholder="Ingrese contraseña...">
+                </div>
+                
+                <div id="login-error" class="hidden text-red-400 text-sm text-center font-semibold bg-red-900/20 p-2 rounded">
+                    Credenciales incorrectas
+                </div>
+
+                <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-cyan-900/20 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+                    INICIAR SESIÓN
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center text-xs text-slate-600">
+                Authorized Personnel Only • v3.0
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTENT (Hidden by default) -->
+    <div id="main-app" class="flex h-screen w-full hidden opacity-0 transition-opacity duration-500">
         <!-- Sidebar -->
         <aside class="w-20 lg:w-64 flex-shrink-0 border-r border-slate-800 bg-slate-900 flex flex-col transition-all duration-300">
             <div class="h-20 flex items-center justify-center border-b border-slate-800">
@@ -70,21 +111,24 @@
                 </button>
             </nav>
             <div class="p-4 border-t border-slate-800 text-xs text-slate-500 text-center lg:text-left">
+                <button onclick="app.logout()" class="w-full flex items-center justify-center lg:justify-start gap-2 text-red-400 hover:text-red-300 transition-colors mb-2 p-2 hover:bg-slate-800 rounded">
+                    <span>&#9032;</span> <span class="hidden lg:inline">Cerrar Sesión</span>
+                </button>
                 <p class="hidden lg:block">Casa Betel System</p>
-                <p class="font-mono mt-1">v2.5 <span class="text-green-500">&#9679;</span> Online</p>
+                <p class="font-mono mt-1">v3.0 <span class="text-green-500">&#9679;</span> Online</p>
             </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- Main Content Area -->
         <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-gradient-to-br from-slate-950 to-slate-900">
             <header class="h-20 border-b border-slate-800 flex items-center justify-between px-8 glass-panel z-10">
                 <div>
                     <h1 class="text-xl lg:text-2xl font-bold text-white tracking-tight">CASA BETEL <span class="text-cyan-400 font-light">| Protocolo</span></h1>
-                    <p class="text-xs text-slate-400 font-mono mt-1">DTO. N° 4/2009 - Monitoreo Activo</p>
+                    <p class="text-xs text-slate-400 font-mono mt-1">DTO. N° 4/2009 - Gestión de Evidencia</p>
                 </div>
                 <div class="flex items-center gap-4">
                     <button onclick="app.downloadReport()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-xl shadow-[0_0_15px_rgba(8,145,178,0.5)] transition-all flex items-center gap-2 font-bold text-sm">
-                        <span>&#11015;</span> Exportar PDF
+                        <span>&#11015;</span> Informe PDF
                     </button>
                     <div class="h-10 w-10 rounded-full bg-slate-800 border border-cyan-900 flex items-center justify-center text-cyan-400 font-bold">CB</div>
                 </div>
@@ -92,6 +136,7 @@
 
             <div id="view-container" class="flex-1 overflow-y-auto p-4 lg:p-8 space-y-8 relative"></div>
 
+            <!-- Generic Notification Modal -->
             <div id="app-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
                 <div class="bg-slate-800 p-6 rounded-xl shadow-2xl max-w-sm w-full border-t-4 border-cyan-400">
                     <h3 id="modal-title" class="text-xl font-bold text-white mb-3">Notificación</h3>
@@ -99,6 +144,26 @@
                     <button onclick="app.closeModal()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-2 rounded-lg">Aceptar</button>
                 </div>
             </div>
+
+            <!-- Notes/Evidence Modal -->
+            <div id="notes-modal" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center z-50">
+                <div class="bg-slate-800 p-6 rounded-xl shadow-2xl max-w-md w-full border border-slate-600">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-white">Gestión de Evidencia</h3>
+                        <button onclick="app.closeNotesModal()" class="text-slate-400 hover:text-white">&times;</button>
+                    </div>
+                    <p id="note-item-title" class="text-cyan-400 text-sm font-semibold mb-2"></p>
+                    <p class="text-xs text-slate-500 mb-4">Ingrese ubicación física, folio o comentarios para auditoría.</p>
+                    
+                    <textarea id="note-input" class="w-full h-32 bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-300 text-sm focus:border-cyan-400 focus:outline-none mb-4" placeholder="Ej: Carpeta 3, Estante B. Vence el 12/2025..."></textarea>
+                    
+                    <div class="flex justify-end gap-3">
+                        <button onclick="app.closeNotesModal()" class="px-4 py-2 text-slate-300 hover:text-white text-sm">Cancelar</button>
+                        <button onclick="app.saveNote()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-cyan-900/20">Guardar Evidencia</button>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -144,9 +209,8 @@
             ]
         };
 
-        const appState = { status: {}, currentView: 'dashboard', census: 15, staffCount: 2 };
+        const appState = { status: {}, notes: {}, timestamps: {}, currentView: 'dashboard', census: 15, staffCount: 2, currentEditId: null };
         try { Object.assign(appState, JSON.parse(localStorage.getItem('casaBetelState') || '{}')); } catch(e){}
-        // Init default false if empty
         regulationData.sections.forEach(s => s.items.forEach(i => { if(appState.status[i.id] === undefined) appState.status[i.id] = false; }));
 
         let radarChart = null, doughnutChart = null;
@@ -177,7 +241,7 @@
             },
             matrix: () => `
                 <div class="space-y-6 pb-20">
-                    <h2 class="text-2xl font-bold text-white">Matriz de Cumplimiento</h2>
+                    <h2 class="text-2xl font-bold text-white">Matriz de Cumplimiento & Evidencia</h2>
                     <div class="grid gap-6">
                         ${regulationData.sections.map(s => `
                             <div class="glass-panel rounded-xl overflow-hidden">
@@ -187,9 +251,25 @@
                                 </div>
                                 <div class="p-4 grid md:grid-cols-2 gap-4">
                                     ${s.items.map(i => `
-                                        <div class="flex items-center justify-between p-3 bg-slate-950/50 rounded border border-slate-800">
-                                            <div class="pr-2"><div class="text-sm text-slate-300">${i.text}</div><div class="text-xs text-slate-600">${i.ref}</div></div>
-                                            <div class="relative w-12 h-6 flex-shrink-0"><input type="checkbox" id="${i.id}" class="toggle-checkbox" ${appState.status[i.id]?'checked':''} onchange="app.toggleItem('${i.id}')"><label for="${i.id}" class="toggle-label ${appState.status[i.id]?'bg-cyan-600':''}"></label></div>
+                                        <div class="flex flex-col p-3 bg-slate-950/50 rounded border border-slate-800 transition hover:border-slate-600">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <div class="pr-2">
+                                                    <div class="text-sm text-slate-300 font-medium">${i.text}</div>
+                                                    <div class="text-xs text-slate-600">${i.ref}</div>
+                                                </div>
+                                                <div class="relative w-12 h-6 flex-shrink-0">
+                                                    <input type="checkbox" id="${i.id}" class="toggle-checkbox" ${appState.status[i.id]?'checked':''} onchange="app.toggleItem('${i.id}')">
+                                                    <label for="${i.id}" class="toggle-label ${appState.status[i.id]?'bg-cyan-600':''}"></label>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center justify-between mt-1 border-t border-slate-800 pt-2">
+                                                <div class="text-xs text-slate-500">
+                                                    ${appState.timestamps[i.id] ? 'Mod: ' + new Date(appState.timestamps[i.id]).toLocaleDateString() : 'Sin cambios'}
+                                                </div>
+                                                <button onclick="app.openNotesModal('${i.id}', '${i.text}')" class="flex items-center gap-1 text-xs ${appState.notes[i.id] ? 'text-cyan-400 font-bold' : 'text-slate-500 hover:text-cyan-400'} transition-colors">
+                                                    <span>${appState.notes[i.id] ? '📝 Ver Nota' : '+ Evidencia'}</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     `).join('')}
                                 </div>
@@ -205,9 +285,10 @@
                     <div class="grid lg:grid-cols-2 gap-8 h-full">
                         <div class="glass-panel p-8 rounded-xl space-y-8">
                             <h2 class="text-2xl font-bold text-white">Calculador RR.HH.</h2>
+                            <p class="text-sm text-slate-400 italic">Validación basada en ratios del Art. 18. Nota: El Art. 14 exige además que el equipo incluya Médico y Psicólogo.</p>
                             <div>
                                 <label class="block text-cyan-400 font-bold mb-2">Residentes: ${appState.census}</label>
-                                <input type="range" min="1" max="100" value="${appState.census}" class="w-full" oninput="app.updateCensus(this.value)">
+                                <input type="range" min="1" max="100" value="${appState.census}" class="w-full accent-cyan-400" oninput="app.updateCensus(this.value)">
                             </div>
                             <div>
                                 <label class="block text-purple-400 font-bold mb-2">Profesionales (Turno): ${appState.staffCount}</label>
@@ -233,7 +314,7 @@
             codex: () => `
                 <div class="glass-panel p-8 rounded-xl h-full flex flex-col">
                     <h2 class="text-2xl font-bold text-white mb-4">Código DTO N°4</h2>
-                    <input type="text" placeholder="Buscar..." class="bg-slate-900 border border-slate-700 text-white p-3 rounded mb-4" onkeyup="app.filterCodex(this.value)">
+                    <input type="text" placeholder="Buscar..." class="bg-slate-900 border border-slate-700 text-white p-3 rounded mb-4 focus:border-cyan-400 outline-none" onkeyup="app.filterCodex(this.value)">
                     <div class="overflow-y-auto space-y-2 pr-2 flex-1">
                         ${regulationData.sections.flatMap(s=>s.items.map(i=>`
                             <div class="codex-item p-3 border border-slate-800 rounded hover:bg-slate-800/50">
@@ -246,9 +327,36 @@
         };
 
         const app = {
-            init: () => { router.navigate('dashboard'); },
+            init: () => { 
+                if(sessionStorage.getItem('nexus_session') === 'active') {
+                    document.getElementById('login-screen').classList.add('hidden');
+                    const main = document.getElementById('main-app');
+                    main.classList.remove('hidden', 'opacity-0');
+                    router.navigate('dashboard');
+                }
+            },
+            attemptLogin: () => {
+                const u = document.getElementById('username').value, p = document.getElementById('password').value;
+                if (u === 'admin' && p === '1234') {
+                    document.getElementById('login-error').classList.add('hidden');
+                    sessionStorage.setItem('nexus_session', 'active');
+                    document.getElementById('login-screen').classList.add('fade-out');
+                    setTimeout(() => {
+                        document.getElementById('login-screen').classList.add('hidden');
+                        const main = document.getElementById('main-app');
+                        main.classList.remove('hidden');
+                        setTimeout(() => main.classList.remove('opacity-0'), 50);
+                        router.navigate('dashboard');
+                    }, 500);
+                } else {
+                    document.getElementById('login-error').classList.remove('hidden');
+                    document.getElementById('password').value = '';
+                }
+            },
+            logout: () => { sessionStorage.removeItem('nexus_session'); location.reload(); },
             toggleItem: (id) => {
                 appState.status[id] = !appState.status[id];
+                appState.timestamps[id] = new Date().toISOString(); // Save timestamp
                 app.save();
                 const chk = document.getElementById(id);
                 if(chk) {
@@ -258,8 +366,28 @@
                     chk.classList.toggle('border-cyan-400', appState.status[id]);
                     lbl.classList.toggle('bg-cyan-600', appState.status[id]);
                 }
+                if(appState.currentView === 'matrix') router.navigate('matrix'); // Refresh for timestamp update
                 if(appState.currentView === 'dashboard') app.renderCharts();
-                if(appState.currentView === 'codex') router.navigate('codex');
+            },
+            openNotesModal: (id, text) => {
+                appState.currentEditId = id;
+                document.getElementById('note-item-title').innerText = text;
+                document.getElementById('note-input').value = appState.notes[id] || '';
+                document.getElementById('notes-modal').classList.replace('hidden', 'flex');
+            },
+            closeNotesModal: () => {
+                document.getElementById('notes-modal').classList.replace('flex', 'hidden');
+                appState.currentEditId = null;
+            },
+            saveNote: () => {
+                if(appState.currentEditId) {
+                    const val = document.getElementById('note-input').value;
+                    appState.notes[appState.currentEditId] = val;
+                    appState.timestamps[appState.currentEditId] = new Date().toISOString();
+                    app.save();
+                    app.closeNotesModal();
+                    router.navigate('matrix'); // Refresh UI
+                }
             },
             save: () => localStorage.setItem('casaBetelState', JSON.stringify(appState)),
             updateCensus: (v) => { appState.census = parseInt(v); app.save(); document.getElementById('view-container').innerHTML = views.calculator(); },
@@ -297,31 +425,52 @@
                 const date = new Date().toLocaleDateString();
                 const done = Object.values(appState.status).filter(x=>x).length, total = Object.keys(appState.status).length;
                 
-                doc.setFontSize(20); doc.setTextColor(34, 211, 238);
-                doc.text("NEXUS COMPLIANCE SYSTEM", 105, 20, null, null, "center");
-                doc.setFontSize(10); doc.setTextColor(100);
-                doc.text(`Reporte Casa Betel - ${date}`, 105, 26, null, null, "center");
-
-                doc.setFontSize(14); doc.setTextColor(0);
-                doc.text(`Avance: ${Math.round((done/total)*100)}% (${done}/${total} Ítems)`, 20, 40);
+                // Header
+                doc.setFillColor(15, 23, 42); // Slate 900
+                doc.rect(0, 0, 210, 30, 'F');
+                doc.setFontSize(22); doc.setTextColor(34, 211, 238);
+                doc.text("NEXUS SYSTEM", 105, 18, null, null, "center");
                 
-                let y = 55;
+                doc.setFontSize(10); doc.setTextColor(100);
+                doc.text(`Informe de Auditoría Interna - ${date}`, 105, 40, null, null, "center");
+                doc.setFontSize(12); doc.setTextColor(0);
+                doc.text(`Estado Global: ${Math.round((done/total)*100)}% Cumplimiento`, 20, 50);
+                
+                let y = 65;
                 regulationData.sections.forEach(s => {
-                    if(y > 270) { doc.addPage(); y = 20; }
-                    doc.setFontSize(12); doc.setTextColor(34, 211, 238);
-                    doc.text(s.title, 20, y); y += 8;
-                    doc.setFontSize(10); doc.setTextColor(50);
+                    if(y > 260) { doc.addPage(); y = 20; }
+                    doc.setFontSize(14); doc.setTextColor(34, 211, 238);
+                    doc.text(s.title, 20, y); 
+                    doc.setDrawColor(34, 211, 238); doc.line(20, y+2, 190, y+2);
+                    y += 10;
+                    
+                    doc.setFontSize(10); 
                     s.items.forEach(i => {
-                        if(y > 280) { doc.addPage(); y = 20; }
-                        const st = appState.status[i.id] ? "[OK]" : "[  ]";
-                        doc.text(`${st} ${i.text} (${i.ref})`, 25, y);
-                        y += 6;
+                        if(y > 275) { doc.addPage(); y = 20; }
+                        const st = appState.status[i.id] ? "CUMPLE" : "PENDIENTE";
+                        const note = appState.notes[i.id] ? `[Nota: ${appState.notes[i.id]}]` : "";
+                        
+                        doc.setTextColor(appState.status[i.id] ? 0 : 200, appState.status[i.id] ? 100 : 0, 0); // Greenish vs Reddishish logic simplified
+                        doc.setTextColor(appState.status[i.id] ? 0 : 255, 0, 0);
+                        doc.text(`[${st}]`, 20, y);
+                        
+                        doc.setTextColor(0);
+                        doc.text(`${i.text} (${i.ref})`, 45, y);
+                        
+                        if(note) {
+                            y += 5;
+                            doc.setTextColor(100);
+                            doc.setFontSize(9);
+                            doc.text(note, 50, y);
+                            doc.setFontSize(10);
+                        }
+                        y += 8;
                     });
-                    y += 6;
+                    y += 5;
                 });
                 
-                doc.save(`Nexus_Report_${date.replace(/\//g,'-')}.pdf`);
-                app.showModal("PDF Generado", "El reporte se ha descargado a tu dispositivo.");
+                doc.save(`Nexus_Reporte_Detallado_${date.replace(/\//g,'-')}.pdf`);
+                app.showModal("Informe Generado", "El PDF con evidencia y notas se ha descargado.");
             }
         };
 
