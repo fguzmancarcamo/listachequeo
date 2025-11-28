@@ -1,10 +1,9 @@
 <!-- 
-  Sistema NEXUS Compliance System v3.0 - Casa Betel
+  Sistema NEXUS Compliance System v3.1 - Casa Betel
   Implementación de:
-  1. Gestión de Evidencia (Notas por ítem).
-  2. Trazabilidad (Fecha de última verificación/modificación).
-  3. Reporte PDF que incluye las Notas de Evidencia.
-  4. Mención explícita del Art. 14 (Roles) en el Calculador de Personal.
+  1. Justificación Legal de Pendientes en Reporte PDF (basado en DTO N° 4/2009).
+  2. Integración del texto completo de los Artículos 3, 4, 5, 6, 11, 14 y 18.
+  3. Mantiene Trazabilidad y Gestión de Evidencia (Notas).
 -->
 <!DOCTYPE html>
 <html lang="es">
@@ -89,7 +88,7 @@
             </form>
             
             <div class="mt-6 text-center text-xs text-slate-600">
-                Personal Autorizado • v3.0 (admin/1234)
+                Personal Autorizado • v3.1 (admin/1234)
             </div>
         </div>
     </div>
@@ -130,7 +129,7 @@
                     <span>&#9032;</span> <span class="hidden lg:inline">Cerrar Sesión</span>
                 </button>
                 <p class="hidden lg:block">Casa Betel System</p>
-                <p class="font-mono mt-1">v3.0 <span class="text-green-500">&#9679;</span> Online</p>
+                <p class="font-mono mt-1">v3.1 <span class="text-green-500">&#9679;</span> Online</p>
             </div>
         </aside>
 
@@ -185,42 +184,54 @@
     </div>
 
     <script>
+        // --- TEXTO COMPLETO DE ARTÍCULOS DTO N° 4/2009 (Justificación Legal) ---
+        // Este objeto contiene la base legal para justificar los ítems pendientes.
+        const regulationText = {
+            'Art 3': 'El Centro deberá contar con los siguientes documentos: 1. Programa Terapéutico. 2. Plan individual de tratamiento (PIT). 3. Ficha u hoja clínica que registre la evolución. 4. Informe de evaluación final al momento del alta. 5. Documento de organización y funcionamiento interno. 6. Registro estadístico actualizado. 7. Material de consulta de la normativa. 8. Procedimiento explícito para acceso a atención médica de urgencia. 9. Nómina de establecimientos de psiquiatría o salud mental para referencia. 10. Plan de emergencias y prevención de riesgos.',
+            'Art 4': 'Los Centros deberán contar con infraestructura libre de riesgos estructurales. Estas condiciones se verificarán en: Muros, pisos y cielos en buen estado. Instalaciones sanitarias en buen estado. Iluminación natural y artificial. Mecanismos de calefacción seguros. Plan de mantención de equipamiento.',
+            'Art 5': 'Las instalaciones deberán contar con: a) Servicios higiénicos (1 taza y 1 lavatorio por cada 10 usuarios simultáneos). b) Al menos una sala por cada 15 usuarios para entrevistas privadas. c) Sala de estar o usos múltiples. d) Zonas exteriores para recreación, patio, terraza o jardín. e) Contenedor hermético de almacenamiento transitorio de basura. f) Lugar destinado a guardar los útiles de aseo. g) Dependencia para la preparación de alimentos cuando sea necesario. Debe contar con Botiquín autorizado.',
+            'Art 6': 'En el caso de corresponder a un Centro residencial, se deberán agregar las siguientes exigencias: a) Comedor o comedores suficientes para el uso simultáneo de al menos el 50% de los residentes. b) Dormitorios con un máximo de cuatro camas con 1,5 metros entre bordes. c) Guardarropa o clóset con espacio adecuado para cada usuario. d) Un baño con ducha, una taza y un lavamanos por cada cinco residentes. e) La cocina deberá cumplir con condiciones higiénicas y sanitarias. f) Dependencia interna o techada para lavadero con implementación.',
+            'Art 11': 'El Director Técnico debe ser un profesional del área de la salud con experiencia no inferior a 3 años en tratamiento de alcohol y drogas, o un técnico en rehabilitación con a lo menos 5 años de experiencia y capacitación demostrable.',
+            'Art 14': 'El Centro deberá contar con un equipo base de profesionales y técnicos en rehabilitación, con idoneidad y experiencia en la atención a las personas con consumo problemático, con el número de profesionales que le permita cumplir con la intensidad del programa terapéutico ofrecido. Dicho equipo debe incluir un Médico y un Psicólogo, además de otros profesionales, según la complejidad.',
+            'Art 18': 'El Centro deberá contar en forma permanente con personal de apoyo que asegure la supervisión de la vida cotidiana de los usuarios y que permita el cumplimiento del programa. Se debe contar con una relación mínima de 2 funcionarios por cada 15 usuarios o fracción superior a 15, las 24 horas del día, los 7 días de la semana, para programas residenciales.'
+        };
+
         // Definición de los requerimientos basados en el DTO N° 4/2009
         const regulationData = {
             sections: [
                 {
                     id: 'docs', title: 'I. Documentación', icon: '&#128196;', description: 'Documentos obligatorios según Art 3.',
                     items: [
-                        {id: 'd1', text: 'Programa Terapéutico', ref: 'Art 3.1'}, {id: 'd2', text: 'Plan Individual (PIT)', ref: 'Art 3.2'},
-                        {id: 'd3', text: 'Ficha Clínica', ref: 'Art 3.3'}, {id: 'd4', text: 'Informe de Alta', ref: 'Art 3.4'},
-                        {id: 'd5', text: 'Manual Org. Interna', ref: 'Art 3.5'}, {id: 'd6', text: 'Registro Estadístico', ref: 'Art 3.6'},
-                        {id: 'd7', text: 'Material Legal', ref: 'Art 3.7'}, {id: 'd8', text: 'Acceso Urgencia Médica', ref: 'Art 3.8'},
-                        {id: 'd9', text: 'Red Psiquiátrica', ref: 'Art 3.9'}, {id: 'd10', text: 'Plan Emergencias', ref: 'Art 3.10'}
+                        {id: 'd1', text: 'Programa Terapéutico', ref: 'Art 3'}, {id: 'd2', text: 'Plan Individual (PIT)', ref: 'Art 3'},
+                        {id: 'd3', text: 'Ficha Clínica', ref: 'Art 3'}, {id: 'd4', text: 'Informe de Alta', ref: 'Art 3'},
+                        {id: 'd5', text: 'Manual Org. Interna', ref: 'Art 3'}, {id: 'd6', text: 'Registro Estadístico', ref: 'Art 3'},
+                        {id: 'd7', text: 'Material Legal', ref: 'Art 3'}, {id: 'd8', text: 'Acceso Urgencia Médica', ref: 'Art 3'},
+                        {id: 'd9', text: 'Red Psiquiátrica', ref: 'Art 3'}, {id: 'd10', text: 'Plan Emergencias', ref: 'Art 3'}
                     ]
                 },
                 {
                     id: 'infra', title: 'II. Infraestructura', icon: '&#127963;', description: 'Condiciones físicas según Art 4 y 5.',
                     items: [
                         {id: 'i1', text: 'Estructura Segura', ref: 'Art 4'}, {id: 'i2', text: 'Estado Muros/Pisos', ref: 'Art 4'},
-                        {id: 'i3', text: 'Instalaciones Sanitarias', ref: 'Art 4'}, {id: 'i4', text: '1 Baño/10 Usuarios', ref: 'Art 5a'},
-                        {id: 'i5', text: 'Sala Entrevista (1/15)', ref: 'Art 5b'}, {id: 'i6', text: 'Sala Multiuso', ref: 'Art 5c'},
-                        {id: 'i7', text: 'Área Verde/Patio', ref: 'Art 5d'}, {id: 'i8', text: 'Basura Hermética', ref: 'Art 5e'},
+                        {id: 'i3', text: 'Instalaciones Sanitarias', ref: 'Art 4'}, {id: 'i4', text: '1 Baño/10 Usuarios', ref: 'Art 5'},
+                        {id: 'i5', text: 'Sala Entrevista (1/15)', ref: 'Art 5'}, {id: 'i6', text: 'Sala Multiuso', ref: 'Art 5'},
+                        {id: 'i7', text: 'Área Verde/Patio', ref: 'Art 5'}, {id: 'i8', text: 'Basura Hermética', ref: 'Art 5'},
                         {id: 'i9', text: 'Botiquín Autorizado', ref: 'Art 5'}
                     ]
                 },
                 {
                     id: 'res', title: 'III. Residencial', icon: '&#128716;', description: 'Requisitos de pernoctación según Art 6.',
                     items: [
-                        {id: 'r1', text: 'Comedor (50% cap)', ref: 'Art 6a'}, {id: 'r2', text: 'Dormitorios (Max 4)', ref: 'Art 6b'},
-                        {id: 'r3', text: 'Espacio Camas (1.5m)', ref: 'Art 6b'}, {id: 'r4', text: 'Clóset Individual', ref: 'Art 6c'},
-                        {id: 'r5', text: '1 Ducha/5 Res.', ref: 'Art 6d'}, {id: 'r6', text: 'Cocina Higiénica', ref: 'Art 6e'},
-                        {id: 'r7', text: 'Lavandería', ref: 'Art 6f'}
+                        {id: 'r1', text: 'Comedor (50% cap)', ref: 'Art 6'}, {id: 'r2', text: 'Dormitorios (Max 4)', ref: 'Art 6'},
+                        {id: 'r3', text: 'Espacio Camas (1.5m)', ref: 'Art 6'}, {id: 'r4', text: 'Clóset Individual', ref: 'Art 6'},
+                        {id: 'r5', text: '1 Ducha/5 Res.', ref: 'Art 6'}, {id: 'r6', text: 'Cocina Higiénica', ref: 'Art 6'},
+                        {id: 'r7', text: 'Lavandería', ref: 'Art 6'}
                     ]
                 },
                 {
                     id: 'stf', title: 'IV. Personal', icon: '&#128101;', description: 'Equipo técnico según Art 11, 14, 18.',
                     items: [
-                        {id: 's1', text: 'Director Técnico', ref: 'Art 11'}, 
+                        {id: 's1', text: 'Director Técnico (Experiencia)', ref: 'Art 11'}, 
                         {id: 's2', text: 'Equipo Base Mínimo (Médico, Psicólogo, etc.)', ref: 'Art 14'},
                         {id: 's3', text: 'Ratio 2/15 (24/7) - Personal de Apoyo', ref: 'Art 18'}, 
                         {id: 's4', text: 'Nómina Personal y Contratos', ref: 'Art 14'}
@@ -525,7 +536,7 @@
                 }
             },
             
-            // Generación de Reporte PDF con Evidencia
+            // Generación de Reporte PDF con Evidencia y Justificación Legal
             downloadReport: () => {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
@@ -603,13 +614,41 @@
                             doc.text(`Evidencia: No Registrada`, marginX + 35, y);
                             y += 4;
                         }
-                        y += 4; // Espacio entre ítems
+                        
+                        // Justificación Legal (Solo si está PENDIENTE)
+                        if (!isCompliant) {
+                            const refKey = i.ref; // Ejemplo: 'Art 3', 'Art 5', 'Art 18'
+                            const justificationText = regulationText[refKey];
+                            
+                            if (justificationText) {
+                                y += 2;
+                                doc.setFillColor(242, 219, 219); // Rojo claro de fondo
+                                doc.rect(marginX + 30, y, 160, 0.1, 'F'); // Línea divisora
+                                
+                                doc.setTextColor(179, 102, 102); // Rojo oscuro
+                                doc.setFont('Helvetica', 'Bold');
+                                doc.setFontSize(9);
+                                doc.text('BASE LEGAL (Motivo del Incumplimiento):', marginX + 35, y + 4);
+                                
+                                doc.setTextColor(51, 51, 51); // Gris oscuro
+                                doc.setFont('Helvetica', 'Italic');
+                                doc.setFontSize(8);
+                                const lines = doc.splitTextToSize(justificationText, 155);
+                                doc.text(lines, marginX + 35, y + 8);
+                                y += (lines.length * 3.5) + 12; // Ajustar el salto de línea para el texto legal
+                            } else {
+                                y += 4;
+                            }
+                        } else {
+                           y += 4; 
+                        }
+                         y += 2; // Espacio final entre ítems
                     });
                     y += 5; // Espacio entre secciones
                 });
                 
                 doc.save(`Nexus_Reporte_Auditoria_${date.replace(/\//g,'-')}.pdf`);
-                app.showModal("Informe Generado", "El PDF detallado con la evidencia de trazabilidad se ha descargado correctamente.");
+                app.showModal("Informe Generado", "El PDF detallado con la evidencia y justificación legal para los pendientes se ha descargado correctamente.");
             }
         };
 
