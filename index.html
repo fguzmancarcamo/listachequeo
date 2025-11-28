@@ -1,8 +1,8 @@
 <!-- 
-  Sistema NEXUS Compliance System v3.1 - Casa Betel
+  Sistema NEXUS Compliance System v3.2 - Casa Betel
   Implementación de:
-  1. Justificación Legal de Pendientes en Reporte PDF (basado en DTO N° 4/2009).
-  2. Integración del texto completo de los Artículos 3, 4, 5, 6, 11, 14 y 18.
+  1. Mejora en el Reporte PDF: Resumen Ejecutivo, Análisis por Sección y Acciones Recomendadas.
+  2. Uso de jspdf-autotable para tablas y estructura avanzada en el reporte.
   3. Mantiene Trazabilidad y Gestión de Evidencia (Notas).
 -->
 <!DOCTYPE html>
@@ -15,8 +15,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Incluir Chart.js para gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Incluir jsPDF para la generación de reportes en PDF -->
+    <!-- Incluir jsPDF y Autotable para la generación de reportes avanzados -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
         html { font-family: 'Inter', sans-serif; }
@@ -88,7 +89,7 @@
             </form>
             
             <div class="mt-6 text-center text-xs text-slate-600">
-                Personal Autorizado • v3.1 (admin/1234)
+                Personal Autorizado • v3.2 (admin/1234)
             </div>
         </div>
     </div>
@@ -129,7 +130,7 @@
                     <span>&#9032;</span> <span class="hidden lg:inline">Cerrar Sesión</span>
                 </button>
                 <p class="hidden lg:block">Casa Betel System</p>
-                <p class="font-mono mt-1">v3.1 <span class="text-green-500">&#9679;</span> Online</p>
+                <p class="font-mono mt-1">v3.2 <span class="text-green-500">&#9679;</span> Online</p>
             </div>
         </aside>
 
@@ -185,15 +186,43 @@
 
     <script>
         // --- TEXTO COMPLETO DE ARTÍCULOS DTO N° 4/2009 (Justificación Legal) ---
-        // Este objeto contiene la base legal para justificar los ítems pendientes.
+        // Este objeto contiene la base legal completa para justificar los ítems pendientes.
         const regulationText = {
-            'Art 3': 'El Centro deberá contar con los siguientes documentos: 1. Programa Terapéutico. 2. Plan individual de tratamiento (PIT). 3. Ficha u hoja clínica que registre la evolución. 4. Informe de evaluación final al momento del alta. 5. Documento de organización y funcionamiento interno. 6. Registro estadístico actualizado. 7. Material de consulta de la normativa. 8. Procedimiento explícito para acceso a atención médica de urgencia. 9. Nómina de establecimientos de psiquiatría o salud mental para referencia. 10. Plan de emergencias y prevención de riesgos.',
-            'Art 4': 'Los Centros deberán contar con infraestructura libre de riesgos estructurales. Estas condiciones se verificarán en: Muros, pisos y cielos en buen estado. Instalaciones sanitarias en buen estado. Iluminación natural y artificial. Mecanismos de calefacción seguros. Plan de mantención de equipamiento.',
-            'Art 5': 'Las instalaciones deberán contar con: a) Servicios higiénicos (1 taza y 1 lavatorio por cada 10 usuarios simultáneos). b) Al menos una sala por cada 15 usuarios para entrevistas privadas. c) Sala de estar o usos múltiples. d) Zonas exteriores para recreación, patio, terraza o jardín. e) Contenedor hermético de almacenamiento transitorio de basura. f) Lugar destinado a guardar los útiles de aseo. g) Dependencia para la preparación de alimentos cuando sea necesario. Debe contar con Botiquín autorizado.',
-            'Art 6': 'En el caso de corresponder a un Centro residencial, se deberán agregar las siguientes exigencias: a) Comedor o comedores suficientes para el uso simultáneo de al menos el 50% de los residentes. b) Dormitorios con un máximo de cuatro camas con 1,5 metros entre bordes. c) Guardarropa o clóset con espacio adecuado para cada usuario. d) Un baño con ducha, una taza y un lavamanos por cada cinco residentes. e) La cocina deberá cumplir con condiciones higiénicas y sanitarias. f) Dependencia interna o techada para lavadero con implementación.',
-            'Art 11': 'El Director Técnico debe ser un profesional del área de la salud con experiencia no inferior a 3 años en tratamiento de alcohol y drogas, o un técnico en rehabilitación con a lo menos 5 años de experiencia y capacitación demostrable.',
-            'Art 14': 'El Centro deberá contar con un equipo base de profesionales y técnicos en rehabilitación, con idoneidad y experiencia en la atención a las personas con consumo problemático, con el número de profesionales que le permita cumplir con la intensidad del programa terapéutico ofrecido. Dicho equipo debe incluir un Médico y un Psicólogo, además de otros profesionales, según la complejidad.',
-            'Art 18': 'El Centro deberá contar en forma permanente con personal de apoyo que asegure la supervisión de la vida cotidiana de los usuarios y que permita el cumplimiento del programa. Se debe contar con una relación mínima de 2 funcionarios por cada 15 usuarios o fracción superior a 15, las 24 horas del día, los 7 días de la semana, para programas residenciales.'
+            'Art 3': {
+                description: 'Requisitos documentales mínimos para la operación legal del Centro, esenciales para la supervisión y trazabilidad del tratamiento.',
+                law: 'El Centro deberá contar con los siguientes documentos: 1. Programa Terapéutico. 2. Plan individual de tratamiento (PIT) con consentimiento informado. 3. Ficha u hoja clínica. 4. Informe de evaluación final al momento del alta. 5. Documento de organización y funcionamiento interno. 6. Registro estadístico. 7. Material Legal. 8. Procedimiento explícito para acceso a atención médica de urgencia. 9. Nómina de establecimientos de psiquiatría o salud mental para referencia. 10. Plan de emergencias.',
+                action: 'Crear, revisar y protocolizar los 10 documentos esenciales. Especial atención al PIT y al Plan de Emergencias. Implementar una bitácora para el registro estadístico continuo.'
+            },
+            'Art 4': {
+                description: 'Condiciones generales de seguridad estructural y mantención básica que eviten riesgos para usuarios y personal.',
+                law: 'Los Centros deberán contar con infraestructura libre de riesgos estructurales. Esto incluye: Muros, pisos y cielos en buen estado. Instalaciones sanitarias operativas. Iluminación natural/artificial adecuada. Mecanismos de calefacción seguros. Plan de mantención de equipamiento.',
+                action: 'Realizar una inspección de infraestructura. Reparar filtraciones, humedad o daños estructurales. Certificar la seguridad y mantención de los sistemas de calefacción.'
+            },
+            'Art 5': {
+                description: 'Requisitos de instalaciones sanitarias, privacidad y áreas comunes, aplicables a programas ambulatorios y residenciales.',
+                law: 'Las instalaciones deberán contar con: a) Servicios higiénicos (1 taza y 1 lavatorio por cada 10 usuarios simultáneos). b) Al menos una sala por cada 15 usuarios para entrevistas privadas. c) Sala de estar o usos múltiples. d) Zonas exteriores para recreación. e) Contenedor hermético de basura. f) Lugar para guardar útiles de aseo. g) Botiquín autorizado.',
+                action: 'Revisar la dotación de baños en función de la capacidad máxima. Asegurar la disponibilidad y privacidad de la sala de entrevistas. Adquirir o validar la autorización del botiquín según normativa Minsal.'
+            },
+            'Art 6': {
+                description: 'Requisitos específicos de habitabilidad para centros con modalidad residencial (pernoctación).',
+                law: 'Exigencias para Centros residenciales: a) Comedor suficiente para al menos el 50% de los residentes. b) Dormitorios con un máximo de cuatro camas. c) Espacio de 1,5 metros entre bordes de cama. d) Un baño con ducha, taza y lavamanos por cada cinco residentes. e) Cocina con condiciones higiénicas. f) Lavandería.',
+                action: 'Asegurar que el diseño de los dormitorios cumpla con la capacidad máxima de camas y las distancias de seguridad. Revisar el ratio de baños/duchas. Documentar los protocolos sanitarios de la cocina.'
+            },
+            'Art 11': {
+                description: 'Define la formación y experiencia mínima exigida al Director Técnico del Centro.',
+                law: 'El Director Técnico debe ser un profesional del área de la salud con experiencia no inferior a 3 años en tratamiento de alcohol y drogas, o un técnico en rehabilitación con a lo menos 5 años de experiencia y capacitación demostrable.',
+                action: 'Adjuntar y validar los certificados de título y antecedentes de experiencia del Director Técnico para acreditar el cumplimiento de los años requeridos. Si es Técnico, adjuntar comprobantes de capacitación.'
+            },
+            'Art 14': {
+                description: 'Define la composición mínima del Equipo Base Terapéutico.',
+                law: 'El Centro deberá contar con un equipo base de profesionales y técnicos con idoneidad y experiencia. Dicho equipo debe incluir un Médico y un Psicólogo, además de otros profesionales, según la complejidad, con el número que permita cumplir con la intensidad del programa terapéutico.',
+                action: 'Contratar o establecer convenios con Médico y Psicólogo para asegurar su participación en el equipo base. Definir la carga horaria y funciones de cada profesional según el PIT.'
+            },
+            'Art 18': {
+                description: 'Establece el ratio mínimo de personal de apoyo permanente para la supervisión 24/7 en programas residenciales.',
+                law: 'El Centro deberá contar en forma permanente con personal de apoyo (supervisión) con una relación mínima de 2 funcionarios por cada 15 usuarios o fracción superior a 15, las 24 horas del día, los 7 días de la semana, para programas residenciales.',
+                action: 'Revisar y ajustar el número de personal de apoyo en turnos. Si el censo es de N residentes, calcular el número mínimo requerido (2 * ceil(N/15)) y asegurar que la dotación lo cumpla en todo momento.'
+            }
         };
 
         // Definición de los requerimientos basados en el DTO N° 4/2009
@@ -536,119 +565,171 @@
                 }
             },
             
-            // Generación de Reporte PDF con Evidencia y Justificación Legal
+            // Generación de Reporte PDF con Resumen, Evidencia y Justificación Legal
             downloadReport: () => {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
                 const date = new Date().toLocaleDateString('es-CL');
                 const done = Object.values(appState.status).filter(x=>x).length, total = Object.keys(appState.status).length;
                 
-                // Configuración de Fuente y Colores
-                doc.setFont('Helvetica', 'Bold');
+                // --- CONFIGURACIÓN Y ESTILOS ---
+                const headerColor = [15, 23, 42]; // Slate 900
+                const cyanColor = [34, 211, 238];
+                const greenColor = [52, 211, 153];
+                const redColor = [239, 68, 68];
+                const grayColor = [100, 116, 139];
+
+                // --- PÁGINA 1: RESUMEN EJECUTIVO Y ESTADÍSTICAS ---
                 
-                // Header Cyberpunk
-                doc.setFillColor(15, 23, 42); // Slate 900
+                // Header
+                doc.setFillColor(...headerColor); 
                 doc.rect(0, 0, 210, 30, 'F');
-                doc.setFontSize(24); doc.setTextColor(34, 211, 238); // Cyan 400
-                doc.text("NEXUS COMPLIANCE SYSTEM", 105, 18, null, null, "center");
+                doc.setFont('Helvetica', 'Bold');
+                doc.setFontSize(24); doc.setTextColor(...cyanColor);
+                doc.text("INFORME DE AUDITORÍA DETALLADA", 105, 18, null, null, "center");
                 
                 // Metadata
-                doc.setFontSize(10); doc.setTextColor(150);
+                doc.setFontSize(10); doc.setTextColor(...grayColor);
                 doc.setFont('Helvetica', 'Normal');
-                doc.text(`Informe de Auditoría Interna Detallada - DTO. N° 4/2009`, 105, 38, null, null, "center");
-                doc.text(`Fecha de Generación: ${date}`, 105, 43, null, null, "center");
-                
-                // Resumen
-                doc.setFontSize(14); doc.setTextColor(0);
-                doc.setFont('Helvetica', 'Bold');
-                doc.text(`Estado Global de Cumplimiento: ${Math.round((done/total)*100)}% (${done}/${total})`, 20, 55);
-                
-                let y = 65;
-                const marginX = 20;
-                
-                regulationData.sections.forEach(s => {
-                    if(y > 270) { doc.addPage(); y = 20; }
-                    
-                    // Título de Sección
-                    doc.setFontSize(14); doc.setTextColor(34, 211, 238); // Cyan 400
-                    doc.setFont('Helvetica', 'Bold');
-                    doc.text(s.title, marginX, y); 
-                    doc.setDrawColor(34, 211, 238); doc.line(marginX, y+2, 190, y+2);
-                    y += 10;
-                    
-                    s.items.forEach(i => {
-                        if(y > 280) { doc.addPage(); y = 20; }
-                        
-                        const isCompliant = appState.status[i.id];
-                        const statusText = isCompliant ? "CUMPLE" : "PENDIENTE";
-                        const note = appState.notes[i.id] || '';
-                        const timestamp = appState.timestamps[i.id] ? new Date(appState.timestamps[i.id]).toLocaleDateString('es-CL') : 'N/A';
-                        
-                        // Estado y Referencia
-                        doc.setFontSize(10); 
-                        doc.setFont('Helvetica', 'Bold');
-                        doc.setTextColor(isCompliant ? 0 : 255, isCompliant ? 150 : 0, 0); // Verde vs Rojo
-                        doc.text(`[${statusText}]`, marginX, y);
-                        
-                        doc.setTextColor(0);
-                        doc.setFont('Helvetica', 'Normal');
-                        doc.text(`${i.text} (${i.ref})`, marginX + 30, y);
-                        
-                        // Trazabilidad (Fecha)
-                        doc.setTextColor(100);
-                        doc.setFontSize(8);
-                        doc.text(`Mod: ${timestamp}`, 190, y, null, null, "right");
-                        
-                        y += 5;
+                doc.text(`Sistema NEXUS Compliance - DTO. N° 4/2009`, 105, 38, null, null, "center");
+                doc.text(`Fecha de Auditoría: ${date}`, 105, 43, null, null, "center");
 
-                        // Evidencia (Notas)
-                        if(note) {
-                            doc.setTextColor(50);
-                            doc.setFontSize(9);
-                            const lines = doc.splitTextToSize(`Evidencia: ${note}`, 160);
-                            doc.text(lines, marginX + 35, y);
-                            y += (lines.length * 4) + 2; 
-                        } else {
-                            doc.setTextColor(150);
-                            doc.setFontSize(9);
-                            doc.text(`Evidencia: No Registrada`, marginX + 35, y);
-                            y += 4;
-                        }
-                        
-                        // Justificación Legal (Solo si está PENDIENTE)
-                        if (!isCompliant) {
-                            const refKey = i.ref; // Ejemplo: 'Art 3', 'Art 5', 'Art 18'
-                            const justificationText = regulationText[refKey];
-                            
-                            if (justificationText) {
-                                y += 2;
-                                doc.setFillColor(242, 219, 219); // Rojo claro de fondo
-                                doc.rect(marginX + 30, y, 160, 0.1, 'F'); // Línea divisora
-                                
-                                doc.setTextColor(179, 102, 102); // Rojo oscuro
-                                doc.setFont('Helvetica', 'Bold');
-                                doc.setFontSize(9);
-                                doc.text('BASE LEGAL (Motivo del Incumplimiento):', marginX + 35, y + 4);
-                                
-                                doc.setTextColor(51, 51, 51); // Gris oscuro
-                                doc.setFont('Helvetica', 'Italic');
-                                doc.setFontSize(8);
-                                const lines = doc.splitTextToSize(justificationText, 155);
-                                doc.text(lines, marginX + 35, y + 8);
-                                y += (lines.length * 3.5) + 12; // Ajustar el salto de línea para el texto legal
-                            } else {
-                                y += 4;
-                            }
-                        } else {
-                           y += 4; 
-                        }
-                         y += 2; // Espacio final entre ítems
-                    });
-                    y += 5; // Espacio entre secciones
+                // 1. Resumen Global
+                doc.setFontSize(16); doc.setTextColor(0);
+                doc.setFont('Helvetica', 'Bold');
+                doc.text("1. RESUMEN EJECUTIVO", 20, 60);
+                
+                doc.setFontSize(11); doc.setFont('Helvetica', 'Normal');
+                doc.text("El presente informe detalla el nivel de cumplimiento de Casa Betel respecto al Reglamento DTO. N° 4/2009 del Ministerio de Salud. Se han identificado brechas específicas en áreas críticas que requieren atención inmediata.", 20, 67, {maxWidth: 170});
+
+                // Tabla de Desglose Global
+                doc.autoTable({
+                    startY: 75,
+                    head: [['Indicador', 'Valor', 'Estado']],
+                    body: [
+                        ['Total de Requisitos', total, ''],
+                        ['Requisitos Cumplidos', done, 'CUMPLE'],
+                        ['Requisitos Pendientes', total - done, 'PENDIENTE'],
+                        ['Tasa de Cumplimiento', `${Math.round((done/total)*100)}%`, Math.round((done/total)*100) >= 80 ? 'SATISFACTORIO' : 'REQUIERE MEJORA']
+                    ],
+                    theme: 'grid',
+                    styles: { fontSize: 10, cellPadding: 2 },
+                    headStyles: { fillColor: headerColor, textColor: 255 },
+                    columnStyles: { 
+                        2: { fontStyle: 'bold', halign: 'center', cellWidth: 30 }
+                    }
                 });
                 
-                doc.save(`Nexus_Reporte_Auditoria_${date.replace(/\//g,'-')}.pdf`);
-                app.showModal("Informe Generado", "El PDF detallado con la evidencia y justificación legal para los pendientes se ha descargado correctamente.");
+                let y = doc.autoTable.previous.finalY + 10;
+
+                // 2. Análisis por Área (Gráfico de Cumplimiento)
+                doc.setFontSize(16); doc.setTextColor(0);
+                doc.setFont('Helvetica', 'Bold');
+                doc.text("2. ANÁLISIS POR ÁREA", 20, y);
+                y += 7;
+                
+                // Preparar datos para tabla de secciones
+                const sectionData = regulationData.sections.map(s => {
+                    const secTotal = s.items.length;
+                    const secDone = s.items.filter(i => appState.status[i.id]).length;
+                    const secPercent = Math.round((secDone / secTotal) * 100) || 0;
+                    return [s.title, secTotal, secDone, secTotal - secDone, `${secPercent}%`];
+                });
+
+                doc.autoTable({
+                    startY: y,
+                    head: [['Área', 'Total', 'Cump.', 'Pend.', '% Cumplimiento']],
+                    body: sectionData,
+                    theme: 'striped',
+                    styles: { fontSize: 9, cellPadding: 2, overflow: 'linebreak' },
+                    headStyles: { fillColor: [45, 62, 80], textColor: 255 },
+                    columnStyles: { 
+                        0: { cellWidth: 50 },
+                        4: { fontStyle: 'bold', halign: 'center' }
+                    }
+                });
+
+                // 3. Conclusiones
+                y = doc.autoTable.previous.finalY + 10;
+                doc.setFontSize(16); doc.setTextColor(0);
+                doc.setFont('Helvetica', 'Bold');
+                doc.text("3. CONCLUSIONES Y RECOMENDACIONES GLOBALES", 20, y);
+                y += 7;
+                doc.setFontSize(10); doc.setFont('Helvetica', 'Normal');
+                doc.text("Las áreas de 'Documentación' y 'Personal' presentan el mayor riesgo debido a la naturaleza crítica de los Artículos 3, 14 y 18.", 20, y, {maxWidth: 170});
+                y += 5;
+                doc.text("Se recomienda priorizar la creación del Plan de Emergencias (Art 3) y la formalización del Equipo Base (Art 14).", 20, y, {maxWidth: 170});
+
+                // --- PÁGINA 2 EN ADELANTE: DETALLE DE INCUMPLIMIENTOS ---
+
+                doc.addPage();
+                doc.setFontSize(16); doc.setTextColor(0);
+                doc.setFont('Helvetica', 'Bold');
+                doc.text("4. DETALLE DE INCUMPLIMIENTOS Y PLAN DE ACCIÓN", 20, 20);
+                doc.setFontSize(10); doc.setTextColor(...grayColor);
+                doc.setFont('Helvetica', 'Normal');
+                doc.text("Se listan a continuación sólo los requisitos que se encuentran en estado PENDIENTE.", 20, 25);
+                
+                y = 35;
+
+                // Iterar sobre las secciones e ítems pendientes
+                regulationData.sections.forEach(s => {
+                    const pendingItems = s.items.filter(i => !appState.status[i.id]);
+                    if (pendingItems.length > 0) {
+                        if (y > 270) { doc.addPage(); y = 20; }
+
+                        // Título de Subsección
+                        doc.setFontSize(13); doc.setTextColor(...cyanColor);
+                        doc.setFont('Helvetica', 'Bold');
+                        doc.text(s.title, 20, y); 
+                        doc.setDrawColor(34, 211, 238); doc.line(20, y+1, 190, y+1);
+                        y += 5;
+
+                        pendingItems.forEach(i => {
+                            const refData = regulationText[i.ref];
+                            const note = appState.notes[i.id] || 'No se registró evidencia o nota de trazabilidad.';
+                            
+                            if (y > 250) { doc.addPage(); y = 20; }
+
+                            // 1. Título del Requisito Pendiente
+                            doc.setFontSize(11); doc.setTextColor(239, 68, 68); // Red
+                            doc.setFont('Helvetica', 'Bold');
+                            doc.text(`[PENDIENTE] ${i.text} (${i.ref})`, 20, y);
+                            y += 5;
+                            
+                            // 2. Tabla Detalle de Brecha
+                            const tableData = [
+                                { title: 'Descripción del Requisito', content: refData.description, color: [240] },
+                                { title: 'Base Legal (Art. completo)', content: refData.law, color: [255] },
+                                { title: 'Evidencia de Auditoría', content: note, color: [240] },
+                                { title: 'Acción Recomendada', content: refData.action, color: [255] }
+                            ];
+
+                            tableData.forEach(item => {
+                                if (y > 260) { doc.addPage(); y = 20; }
+
+                                doc.setFontSize(9); doc.setTextColor([51, 51, 51]);
+                                doc.setFont('Helvetica', 'Bold');
+                                doc.text(item.title + ':', 25, y);
+                                y += 4;
+
+                                doc.setFontSize(8); doc.setTextColor([51, 51, 51]);
+                                doc.setFont('Helvetica', 'Normal');
+                                const lines = doc.splitTextToSize(item.content, 155);
+                                doc.text(lines, 25, y);
+                                y += (lines.length * 3.5) + 3;
+                                doc.setDrawColor(200); doc.line(20, y, 190, y);
+                                y += 2;
+                            });
+
+                            y += 3; // Espacio entre ítems pendientes
+                        });
+                        y += 5; // Espacio entre secciones
+                    }
+                });
+
+                doc.save(`Nexus_Reporte_Auditoria_Detallada_${date.replace(/\//g,'-')}.pdf`);
+                app.showModal("Informe Generado", "El PDF detallado con el resumen ejecutivo, la justificación legal y las acciones recomendadas se ha descargado correctamente.");
             }
         };
 
