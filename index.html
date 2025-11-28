@@ -4,6 +4,7 @@
   1. Mejora en el Reporte PDF: Resumen Ejecutivo, Análisis por Sección y Acciones Recomendadas.
   2. Uso de jspdf-autotable para tablas y estructura avanzada en el reporte.
   3. Mantiene Trazabilidad y Gestión de Evidencia (Notas).
+  4. AJUSTE DE MÁRGENES EN EL PDF PARA MAYOR CLARIDAD EN SECCIONES DE TEXTO.
 -->
 <!DOCTYPE html>
 <html lang="es">
@@ -568,43 +569,49 @@
             // Generación de Reporte PDF con Resumen, Evidencia y Justificación Legal
             downloadReport: () => {
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
+                // Ajustamos el tamaño de la página para tener 210mm de ancho.
+                const doc = new jsPDF('p', 'mm', 'a4'); 
                 const date = new Date().toLocaleDateString('es-CL');
                 const done = Object.values(appState.status).filter(x=>x).length, total = Object.keys(appState.status).length;
+                
+                // Margen lateral (izquierdo y derecho) en mm
+                const SIDE_MARGIN = 15; // De 20 a 15
+                const PAGE_WIDTH = doc.internal.pageSize.getWidth();
+                const CONTENT_WIDTH = PAGE_WIDTH - (2 * SIDE_MARGIN);
+                const CENTER = PAGE_WIDTH / 2;
                 
                 // --- CONFIGURACIÓN Y ESTILOS ---
                 const headerColor = [15, 23, 42]; // Slate 900
                 const cyanColor = [34, 211, 238];
-                const greenColor = [52, 211, 153];
-                const redColor = [239, 68, 68];
                 const grayColor = [100, 116, 139];
 
                 // --- PÁGINA 1: RESUMEN EJECUTIVO Y ESTADÍSTICAS ---
                 
                 // Header
                 doc.setFillColor(...headerColor); 
-                doc.rect(0, 0, 210, 30, 'F');
+                doc.rect(0, 0, PAGE_WIDTH, 30, 'F');
                 doc.setFont('Helvetica', 'Bold');
                 doc.setFontSize(24); doc.setTextColor(...cyanColor);
-                doc.text("INFORME DE AUDITORÍA DETALLADA", 105, 18, null, null, "center");
+                doc.text("INFORME DE AUDITORÍA DETALLADA", CENTER, 18, null, null, "center");
                 
                 // Metadata
                 doc.setFontSize(10); doc.setTextColor(...grayColor);
                 doc.setFont('Helvetica', 'Normal');
-                doc.text(`Sistema NEXUS Compliance - DTO. N° 4/2009`, 105, 38, null, null, "center");
-                doc.text(`Fecha de Auditoría: ${date}`, 105, 43, null, null, "center");
+                doc.text(`Sistema NEXUS Compliance - DTO. N° 4/2009`, CENTER, 38, null, null, "center");
+                doc.text(`Fecha de Auditoría: ${date}`, CENTER, 43, null, null, "center");
 
                 // 1. Resumen Global
                 doc.setFontSize(16); doc.setTextColor(0);
                 doc.setFont('Helvetica', 'Bold');
-                doc.text("1. RESUMEN EJECUTIVO", 20, 60);
+                doc.text("1. RESUMEN EJECUTIVO", SIDE_MARGIN, 60);
                 
                 doc.setFontSize(11); doc.setFont('Helvetica', 'Normal');
-                doc.text("El presente informe detalla el nivel de cumplimiento de Casa Betel respecto al Reglamento DTO. N° 4/2009 del Ministerio de Salud. Se han identificado brechas específicas en áreas críticas que requieren atención inmediata.", 20, 67, {maxWidth: 170});
+                doc.text("El presente informe detalla el nivel de cumplimiento de Casa Betel respecto al Reglamento DTO. N° 4/2009 del Ministerio de Salud. Se han identificado brechas específicas en áreas críticas que requieren atención inmediata.", SIDE_MARGIN, 67, {maxWidth: CONTENT_WIDTH});
 
                 // Tabla de Desglose Global
                 doc.autoTable({
                     startY: 75,
+                    margin: { left: SIDE_MARGIN, right: SIDE_MARGIN }, // Aplicamos margen
                     head: [['Indicador', 'Valor', 'Estado']],
                     body: [
                         ['Total de Requisitos', total, ''],
@@ -625,7 +632,7 @@
                 // 2. Análisis por Área (Gráfico de Cumplimiento)
                 doc.setFontSize(16); doc.setTextColor(0);
                 doc.setFont('Helvetica', 'Bold');
-                doc.text("2. ANÁLISIS POR ÁREA", 20, y);
+                doc.text("2. ANÁLISIS POR ÁREA", SIDE_MARGIN, y);
                 y += 7;
                 
                 // Preparar datos para tabla de secciones
@@ -638,6 +645,7 @@
 
                 doc.autoTable({
                     startY: y,
+                    margin: { left: SIDE_MARGIN, right: SIDE_MARGIN }, // Aplicamos margen
                     head: [['Área', 'Total', 'Cump.', 'Pend.', '% Cumplimiento']],
                     body: sectionData,
                     theme: 'striped',
@@ -653,22 +661,23 @@
                 y = doc.autoTable.previous.finalY + 10;
                 doc.setFontSize(16); doc.setTextColor(0);
                 doc.setFont('Helvetica', 'Bold');
-                doc.text("3. CONCLUSIONES Y RECOMENDACIONES GLOBALES", 20, y);
+                doc.text("3. CONCLUSIONES Y RECOMENDACIONES GLOBALES", SIDE_MARGIN, y);
                 y += 7;
                 doc.setFontSize(10); doc.setFont('Helvetica', 'Normal');
-                doc.text("Las áreas de 'Documentación' y 'Personal' presentan el mayor riesgo debido a la naturaleza crítica de los Artículos 3, 14 y 18.", 20, y, {maxWidth: 170});
+                doc.text("Las áreas de 'Documentación' y 'Personal' presentan el mayor riesgo debido a la naturaleza crítica de los Artículos 3, 14 y 18.", SIDE_MARGIN, y, {maxWidth: CONTENT_WIDTH});
                 y += 5;
-                doc.text("Se recomienda priorizar la creación del Plan de Emergencias (Art 3) y la formalización del Equipo Base (Art 14).", 20, y, {maxWidth: 170});
+                doc.text("Se recomienda priorizar la creación del Plan de Emergencias (Art 3) y la formalización del Equipo Base (Art 14).", SIDE_MARGIN, y, {maxWidth: CONTENT_WIDTH});
 
                 // --- PÁGINA 2 EN ADELANTE: DETALLE DE INCUMPLIMIENTOS ---
+                const DETAIL_START_X = SIDE_MARGIN + 5; // Un pequeño indentado para el contenido
 
                 doc.addPage();
                 doc.setFontSize(16); doc.setTextColor(0);
                 doc.setFont('Helvetica', 'Bold');
-                doc.text("4. DETALLE DE INCUMPLIMIENTOS Y PLAN DE ACCIÓN", 20, 20);
+                doc.text("4. DETALLE DE INCUMPLIMIENTOS Y PLAN DE ACCIÓN", SIDE_MARGIN, 20);
                 doc.setFontSize(10); doc.setTextColor(...grayColor);
                 doc.setFont('Helvetica', 'Normal');
-                doc.text("Se listan a continuación sólo los requisitos que se encuentran en estado PENDIENTE.", 20, 25);
+                doc.text("Se listan a continuación sólo los requisitos que se encuentran en estado PENDIENTE.", SIDE_MARGIN, 25);
                 
                 y = 35;
 
@@ -681,8 +690,8 @@
                         // Título de Subsección
                         doc.setFontSize(13); doc.setTextColor(...cyanColor);
                         doc.setFont('Helvetica', 'Bold');
-                        doc.text(s.title, 20, y); 
-                        doc.setDrawColor(34, 211, 238); doc.line(20, y+1, 190, y+1);
+                        doc.text(s.title, SIDE_MARGIN, y); 
+                        doc.setDrawColor(34, 211, 238); doc.line(SIDE_MARGIN, y+1, PAGE_WIDTH - SIDE_MARGIN, y+1);
                         y += 5;
 
                         pendingItems.forEach(i => {
@@ -694,31 +703,38 @@
                             // 1. Título del Requisito Pendiente
                             doc.setFontSize(11); doc.setTextColor(239, 68, 68); // Red
                             doc.setFont('Helvetica', 'Bold');
-                            doc.text(`[PENDIENTE] ${i.text} (${i.ref})`, 20, y);
+                            doc.text(`[PENDIENTE] ${i.text} (${i.ref})`, SIDE_MARGIN, y);
                             y += 5;
                             
                             // 2. Tabla Detalle de Brecha
                             const tableData = [
-                                { title: 'Descripción del Requisito', content: refData.description, color: [240] },
-                                { title: 'Base Legal (Art. completo)', content: refData.law, color: [255] },
-                                { title: 'Evidencia de Auditoría', content: note, color: [240] },
-                                { title: 'Acción Recomendada', content: refData.action, color: [255] }
+                                { title: 'Descripción del Requisito', content: refData.description },
+                                { title: 'Base Legal (Art. completo)', content: refData.law },
+                                { title: 'Evidencia de Auditoría', content: note },
+                                { title: 'Acción Recomendada', content: refData.action }
                             ];
 
+                            // Ancho útil para el texto dentro del margen
+                            const TEXT_MAX_WIDTH = CONTENT_WIDTH - 10; // 10mm de indentación extra
+                            
                             tableData.forEach(item => {
                                 if (y > 260) { doc.addPage(); y = 20; }
 
+                                // Título de la subsección (Ej: Descripción del Requisito)
                                 doc.setFontSize(9); doc.setTextColor([51, 51, 51]);
                                 doc.setFont('Helvetica', 'Bold');
-                                doc.text(item.title + ':', 25, y);
+                                doc.text(item.title + ':', DETAIL_START_X, y);
                                 y += 4;
 
+                                // Contenido (se envuelve el texto)
                                 doc.setFontSize(8); doc.setTextColor([51, 51, 51]);
                                 doc.setFont('Helvetica', 'Normal');
-                                const lines = doc.splitTextToSize(item.content, 155);
-                                doc.text(lines, 25, y);
+                                const lines = doc.splitTextToSize(item.content, TEXT_MAX_WIDTH);
+                                doc.text(lines, DETAIL_START_X, y);
                                 y += (lines.length * 3.5) + 3;
-                                doc.setDrawColor(200); doc.line(20, y, 190, y);
+                                
+                                // Separador
+                                doc.setDrawColor(200); doc.line(SIDE_MARGIN, y, PAGE_WIDTH - SIDE_MARGIN, y);
                                 y += 2;
                             });
 
