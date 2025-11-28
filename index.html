@@ -1,10 +1,10 @@
 <!-- 
-  Sistema NEXUS Compliance System v3.2 - Casa Betel
+  Sistema NEXUS Compliance System v3.3 - Casa Betel
   Implementación de:
-  1. Mejora en el Reporte PDF: Resumen Ejecutivo, Análisis por Sección y Acciones Recomendadas.
-  2. Uso de jspdf-autotable para tablas y estructura avanzada en el reporte.
-  3. Mantiene Trazabilidad y Gestión de Evidencia (Notas).
-  4. AJUSTE DE MÁRGENES EN EL PDF PARA MAYOR CLARIDAD EN SECCIONES DE TEXTO.
+  1. ADICIÓN DEL NOMBRE DEL CENTRO EN EL ENCABEZADO DEL REPORTE PDF.
+  2. Mejora en el Reporte PDF: Resumen Ejecutivo, Análisis por Sección y Acciones Recomendadas.
+  3. Uso de jspdf-autotable para tablas y estructura avanzada en el reporte.
+  4. Mantiene Trazabilidad y Gestión de Evidencia (Notas).
 -->
 <!DOCTYPE html>
 <html lang="es">
@@ -90,7 +90,7 @@
             </form>
             
             <div class="mt-6 text-center text-xs text-slate-600">
-                Personal Autorizado • v3.2 (admin/1234)
+                Personal Autorizado • v3.3 (admin/1234)
             </div>
         </div>
     </div>
@@ -131,7 +131,7 @@
                     <span>&#9032;</span> <span class="hidden lg:inline">Cerrar Sesión</span>
                 </button>
                 <p class="hidden lg:block">Casa Betel System</p>
-                <p class="font-mono mt-1">v3.2 <span class="text-green-500">&#9679;</span> Online</p>
+                <p class="font-mono mt-1">v3.3 <span class="text-green-500">&#9679;</span> Online</p>
             </div>
         </aside>
 
@@ -568,14 +568,15 @@
             
             // Generación de Reporte PDF con Resumen, Evidencia y Justificación Legal
             downloadReport: () => {
+                const CENTER_NAME = "CENTRO DE TRATAMIENTO CASA BETEL"; // Nombre del centro agregado
+                
                 const { jsPDF } = window.jspdf;
-                // Ajustamos el tamaño de la página para tener 210mm de ancho.
                 const doc = new jsPDF('p', 'mm', 'a4'); 
                 const date = new Date().toLocaleDateString('es-CL');
                 const done = Object.values(appState.status).filter(x=>x).length, total = Object.keys(appState.status).length;
                 
                 // Margen lateral (izquierdo y derecho) en mm
-                const SIDE_MARGIN = 15; // De 20 a 15
+                const SIDE_MARGIN = 15; 
                 const PAGE_WIDTH = doc.internal.pageSize.getWidth();
                 const CONTENT_WIDTH = PAGE_WIDTH - (2 * SIDE_MARGIN);
                 const CENTER = PAGE_WIDTH / 2;
@@ -587,12 +588,18 @@
 
                 // --- PÁGINA 1: RESUMEN EJECUTIVO Y ESTADÍSTICAS ---
                 
-                // Header
+                // Header (Fondo)
                 doc.setFillColor(...headerColor); 
                 doc.rect(0, 0, PAGE_WIDTH, 30, 'F');
                 doc.setFont('Helvetica', 'Bold');
-                doc.setFontSize(24); doc.setTextColor(...cyanColor);
-                doc.text("INFORME DE AUDITORÍA DETALLADA", CENTER, 18, null, null, "center");
+                
+                // Línea 1: Nombre del Centro
+                doc.setFontSize(18); doc.setTextColor(255, 255, 255); // Blanco
+                doc.text(CENTER_NAME, CENTER, 12, null, null, "center");
+                
+                // Línea 2: Título del Reporte
+                doc.setFontSize(22); doc.setTextColor(...cyanColor);
+                doc.text("INFORME DE AUDITORÍA DETALLADA", CENTER, 22, null, null, "center");
                 
                 // Metadata
                 doc.setFontSize(10); doc.setTextColor(...grayColor);
@@ -611,7 +618,7 @@
                 // Tabla de Desglose Global
                 doc.autoTable({
                     startY: 75,
-                    margin: { left: SIDE_MARGIN, right: SIDE_MARGIN }, // Aplicamos margen
+                    margin: { left: SIDE_MARGIN, right: SIDE_MARGIN },
                     head: [['Indicador', 'Valor', 'Estado']],
                     body: [
                         ['Total de Requisitos', total, ''],
@@ -645,7 +652,7 @@
 
                 doc.autoTable({
                     startY: y,
-                    margin: { left: SIDE_MARGIN, right: SIDE_MARGIN }, // Aplicamos margen
+                    margin: { left: SIDE_MARGIN, right: SIDE_MARGIN },
                     head: [['Área', 'Total', 'Cump.', 'Pend.', '% Cumplimiento']],
                     body: sectionData,
                     theme: 'striped',
@@ -669,17 +676,17 @@
                 doc.text("Se recomienda priorizar la creación del Plan de Emergencias (Art 3) y la formalización del Equipo Base (Art 14).", SIDE_MARGIN, y, {maxWidth: CONTENT_WIDTH});
 
                 // --- PÁGINA 2 EN ADELANTE: DETALLE DE INCUMPLIMIENTOS ---
-                const DETAIL_START_X = SIDE_MARGIN + 5; // Un pequeño indentado para el contenido
+                const DETAIL_Y_START = 20;
 
                 doc.addPage();
                 doc.setFontSize(16); doc.setTextColor(0);
                 doc.setFont('Helvetica', 'Bold');
-                doc.text("4. DETALLE DE INCUMPLIMIENTOS Y PLAN DE ACCIÓN", SIDE_MARGIN, 20);
+                doc.text("4. DETALLE DE INCUMPLIMIENTOS Y PLAN DE ACCIÓN", SIDE_MARGIN, DETAIL_Y_START);
                 doc.setFontSize(10); doc.setTextColor(...grayColor);
                 doc.setFont('Helvetica', 'Normal');
-                doc.text("Se listan a continuación sólo los requisitos que se encuentran en estado PENDIENTE.", SIDE_MARGIN, 25);
+                doc.text("Se listan a continuación sólo los requisitos que se encuentran en estado PENDIENTE.", SIDE_MARGIN, DETAIL_Y_START + 5);
                 
-                y = 35;
+                y = DETAIL_Y_START + 15;
 
                 // Iterar sobre las secciones e ítems pendientes
                 regulationData.sections.forEach(s => {
@@ -708,29 +715,29 @@
                             
                             // 2. Tabla Detalle de Brecha
                             const tableData = [
-                                { title: 'Descripción del Requisito', content: refData.description },
-                                { title: 'Base Legal (Art. completo)', content: refData.law },
-                                { title: 'Evidencia de Auditoría', content: note },
-                                { title: 'Acción Recomendada', content: refData.action }
+                                { title: 'Descripción del Requisito', content: refData.description, color: [0, 0, 0], size: 9 },
+                                { title: 'Base Legal (Art. completo)', content: refData.law, color: [50, 50, 50], size: 8 },
+                                { title: 'Evidencia de Auditoría', content: note, color: [100, 100, 100], size: 8 },
+                                { title: 'Acción Recomendada', content: refData.action, color: [0, 0, 0], size: 9 }
                             ];
 
                             // Ancho útil para el texto dentro del margen
-                            const TEXT_MAX_WIDTH = CONTENT_WIDTH - 10; // 10mm de indentación extra
+                            const TEXT_MAX_WIDTH = CONTENT_WIDTH - 2; 
                             
                             tableData.forEach(item => {
                                 if (y > 260) { doc.addPage(); y = 20; }
 
                                 // Título de la subsección (Ej: Descripción del Requisito)
-                                doc.setFontSize(9); doc.setTextColor([51, 51, 51]);
+                                doc.setFontSize(9); doc.setTextColor(item.color[0], item.color[1], item.color[2]);
                                 doc.setFont('Helvetica', 'Bold');
-                                doc.text(item.title + ':', DETAIL_START_X, y);
+                                doc.text(item.title + ':', SIDE_MARGIN + 2, y); // Usamos SIDE_MARGIN + 2 para un pequeño indentado
                                 y += 4;
 
                                 // Contenido (se envuelve el texto)
-                                doc.setFontSize(8); doc.setTextColor([51, 51, 51]);
+                                doc.setFontSize(item.size); doc.setTextColor(item.color[0], item.color[1], item.color[2]);
                                 doc.setFont('Helvetica', 'Normal');
                                 const lines = doc.splitTextToSize(item.content, TEXT_MAX_WIDTH);
-                                doc.text(lines, DETAIL_START_X, y);
+                                doc.text(lines, SIDE_MARGIN + 2, y); // Usamos SIDE_MARGIN + 2 para un pequeño indentado
                                 y += (lines.length * 3.5) + 3;
                                 
                                 // Separador
@@ -753,23 +760,28 @@
             navigate: (v) => { 
                 appState.currentView = v; 
                 document.getElementById('view-container').innerHTML = views[v](); 
-                
-                // Actualizar estilo del sidebar
-                document.querySelectorAll('.nav-item').forEach(e => {
-                    e.classList.toggle('text-cyan-400', e.getAttribute('onclick').includes(v));
-                    e.classList.toggle('bg-slate-800', e.getAttribute('onclick').includes(v));
-                    e.classList.toggle('border-cyan-400', e.getAttribute('onclick').includes(v));
-                    e.classList.toggle('text-slate-400', !e.getAttribute('onclick').includes(v));
-                    e.classList.toggle('border-transparent', !e.getAttribute('onclick').includes(v));
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('bg-slate-800', 'text-cyan-400', 'border-cyan-400');
+                    item.classList.add('text-slate-400', 'border-transparent');
                 });
-                
-                // Renderizar gráficos si estamos en el dashboard
-                if(v === 'dashboard') setTimeout(app.renderCharts, 100); 
-            } 
+                const activeItem = document.querySelector(`button[onclick*="'${v}'"]`);
+                if(activeItem) {
+                    activeItem.classList.add('bg-slate-800', 'text-cyan-400', 'border-cyan-400');
+                    activeItem.classList.remove('text-slate-400', 'border-transparent');
+                }
+
+                if (v === 'dashboard') app.renderCharts();
+            }
         };
-        
-        // Iniciar la aplicación al cargar la ventana
-        window.onload = app.init;
+
+        window.onload = () => {
+            app.init();
+            // Si la sesión no está activa, el init no llama a navigate, lo haremos aquí después del check
+            if(sessionStorage.getItem('nexus_session') !== 'active') {
+                document.getElementById('login-screen').classList.remove('hidden');
+            }
+        };
+
     </script>
 </body>
 </html>
